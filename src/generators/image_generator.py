@@ -10,14 +10,16 @@ from pathlib import Path
 import requests
 
 from src.config import get_settings
+from src.storage_client import upload_bytes
 
 IMAGE_MODEL = "gpt-image-1"
 IMAGE_SIZE = "1024x1024"
 
 
 def generate_image(prompt: str) -> str:
-    """Generate an image and save it to data/generated/images/. Returns the
-    local file path. Raises RuntimeError if OPENAI_API_KEY isn't configured."""
+    """Generate an image; upload to object storage and return its public URL,
+    or (if storage isn't configured) save under data/generated/images/ and
+    return the local path. Raises RuntimeError if OPENAI_API_KEY isn't set."""
     settings = get_settings()
     if not settings.openai_api_key:
         raise RuntimeError(
@@ -38,8 +40,13 @@ def generate_image(prompt: str) -> str:
     else:
         image_bytes = requests.get(image_data.url, timeout=60).content
 
+    name = f"image_{uuid.uuid4().hex[:12]}.png"
+    url = upload_bytes(f"images/{name}", image_bytes, "image/png")
+    if url:
+        return url
+
     output_dir = settings.data_dir / "generated" / "images"
     output_dir.mkdir(parents=True, exist_ok=True)
-    image_path = output_dir / f"image_{uuid.uuid4().hex[:8]}.png"
+    image_path = output_dir / name
     image_path.write_bytes(image_bytes)
     return str(image_path)

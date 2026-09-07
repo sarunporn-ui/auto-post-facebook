@@ -55,7 +55,8 @@ def generate(topic: ContentTopic, raw_content: RawContent, persona: dict, custom
     extra = {"image_prompt": image_prompt}
     if image_prompt:
         try:
-            extra["image_path"] = generate_image(image_prompt)
+            location = generate_image(image_prompt)
+            extra["image_url" if location.startswith("http") else "image_path"] = location
         except Exception:
             # Image generation is best-effort (e.g. OPENAI_API_KEY not set yet) —
             # the post text and prompt are still useful without a rendered image.

@@ -8,6 +8,7 @@ from src.models import ContentTopic, RawContent
 from src.ai_brain.llm_client import complete, extract_json
 from src.ai_brain.persona import persona_prompt_block
 from src.config import get_settings
+from src.storage_client import upload_bytes
 
 SYSTEM_PROMPT = "You write structured, scannable lead-magnet content (numbered lists/rules/ideas)."
 
@@ -93,14 +94,18 @@ def generate(topic: ContentTopic, raw_content: RawContent, persona: dict, custom
         cta=data.get("cta", ""),
     )
 
-    settings = get_settings()
-    output_dir = settings.data_dir / "generated"
-    output_dir.mkdir(parents=True, exist_ok=True)
-    pdf_path = output_dir / f"leadmagnet_{uuid.uuid4().hex[:8]}.pdf"
-    HTML(string=html_doc).write_pdf(str(pdf_path))
+    pdf_bytes = HTML(string=html_doc).write_pdf()
+    name = f"leadmagnet_{uuid.uuid4().hex[:12]}.pdf"
 
-    return (
-        data.get("title", topic.title),
-        json.dumps(data, ensure_ascii=False),
-        {"pdf_path": str(pdf_path)},
-    )
+    url = upload_bytes(f"pdfs/{name}", pdf_bytes, "application/pdf")
+    if url:
+        extra = {"pdf_url": url}
+    else:
+        settings = get_settings()
+        output_dir = settings.data_dir / "generated"
+        output_dir.mkdir(parents=True, exist_ok=True)
+        pdf_path = output_dir / name
+        pdf_path.write_bytes(pdf_bytes)
+        extra = {"pdf_path": str(pdf_path)}
+
+    return data.get("title", topic.title), json.dumps(data, ensure_ascii=False), extra
