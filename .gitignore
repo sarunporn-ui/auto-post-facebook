@@ -2,6 +2,5 @@
 __pycache__/
 *.pyc
 .env
-data/*.json
-data/generated/
+data/
 .DS_Store

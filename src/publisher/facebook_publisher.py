@@ -1,27 +1,31 @@
-"""Meta Graph API client for publishing approved content to a Facebook Page."""
+"""Meta Graph API client — publishes to a Page the user has connected via OAuth.
+
+The Page id + access token come from the caller's `FacebookConnection` row
+(decrypted just before the call), never from global env config.
+"""
 from __future__ import annotations
 import requests
 
 from src.config import get_settings
 
 
-def publish_to_facebook(message: str, image_path: str | None = None) -> dict:
+def publish_to_facebook(
+    page_id: str,
+    page_access_token: str,
+    message: str,
+    image_url: str | None = None,
+) -> dict:
     settings = get_settings()
-    if not settings.meta_page_id or not settings.meta_page_access_token:
-        raise RuntimeError("META_PAGE_ID / META_PAGE_ACCESS_TOKEN are not configured.")
+    base_url = f"https://graph.facebook.com/{settings.facebook_graph_api_version}/{page_id}"
+    params = {"access_token": page_access_token}
 
-    base_url = f"https://graph.facebook.com/{settings.meta_graph_api_version}/{settings.meta_page_id}"
-    params = {"access_token": settings.meta_page_access_token}
-
-    if image_path:
-        with open(image_path, "rb") as image_file:
-            response = requests.post(
-                f"{base_url}/photos",
-                params=params,
-                data={"caption": message},
-                files={"source": image_file},
-                timeout=30,
-            )
+    if image_url:
+        response = requests.post(
+            f"{base_url}/photos",
+            params=params,
+            data={"caption": message, "url": image_url},
+            timeout=30,
+        )
     else:
         response = requests.post(
             f"{base_url}/feed",

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from src.models import RawContent, ContentTopic
 from src.ai_brain.llm_client import complete, extract_json
-from src.ai_brain.persona import load_persona, persona_prompt_block
+from src.ai_brain.persona import persona_prompt_block
 
 SYSTEM_PROMPT = (
     "You are a senior content strategist. You read raw source material (a video "
@@ -35,10 +35,9 @@ exactly as shown; write every text VALUE in the OUTPUT LANGUAGE specified above)
 
 
 def analyze_content(
-    raw_content: RawContent, persona: dict | None = None
+    raw_content: RawContent, persona: dict
 ) -> tuple[list[str], list[ContentTopic]]:
     """Analyze raw content against the target persona and return (takeaways, topics)."""
-    persona = persona or load_persona()
     prompt = TOPIC_PROMPT_TEMPLATE.format(
         persona_block=persona_prompt_block(persona),
         raw_text=raw_content.raw_text[:12000],  # keep prompt within context budget

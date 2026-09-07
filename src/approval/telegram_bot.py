@@ -1,9 +1,9 @@
-"""Telegram bot: the human-in-the-loop approval interface (Module 3).
+"""Telegram bot: the original single-user human-in-the-loop approval interface.
 
-Run as its own process, separate from the FastAPI server:
-    python -m src.approval.telegram_bot
-
-Flow: topics -> (optional custom prompt) -> format choice -> generation -> publish.
+NOT WIRED INTO THE MULTI-USER HOSTED APP. It still imports the removed
+`src.stores` module and the old single-arg persona/service signatures, so it
+will not run as-is. Kept for reference / a future per-user rework. The web
+dashboard (`web/index.html`) is the supported approval interface.
 """
 from __future__ import annotations
 import asyncio

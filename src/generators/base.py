@@ -2,8 +2,10 @@
 from __future__ import annotations
 from typing import Callable
 
+from sqlmodel import Session
+
 from src.models import ContentTopic, RawContent, GeneratedContent
-from src.stores import generated_content_store
+from src.repositories import generated_repo
 
 from src.generators import (
     format1_long_article,
@@ -31,6 +33,8 @@ FORMAT_NAMES = {
 
 
 def generate_content(
+    session: Session,
+    user_id: str,
     format_type: int,
     topic: ContentTopic,
     raw_content: RawContent,
@@ -44,6 +48,7 @@ def generate_content(
     title, body, extra = GENERATORS[format_type](topic, raw_content, persona, custom_prompt)
 
     generated = GeneratedContent(
+        user_id=user_id,
         approval_id=approval_id,
         content_id=raw_content.id,
         format_type=format_type,
@@ -51,4 +56,4 @@ def generate_content(
         body=body,
         extra=extra,
     )
-    return generated_content_store().save(generated)
+    return generated_repo.add(session, generated)

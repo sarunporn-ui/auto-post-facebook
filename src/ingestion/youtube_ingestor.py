@@ -74,5 +74,5 @@ def ingest_youtube(url: str) -> RawContent:
         source_url=url,
         title=f"YouTube video {video_id}",
         raw_text=text,
-        metadata={"video_id": video_id, "transcript_method": method},
+        meta={"video_id": video_id, "transcript_method": method},
     )

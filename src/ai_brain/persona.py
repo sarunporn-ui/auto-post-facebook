@@ -1,34 +1,26 @@
-"""Loads and saves the Target Persona definition used to steer every LLM prompt.
+"""Per-user Target Persona: loaded from the DB row, injected into every LLM prompt.
 
-The persona is meant to be editable anytime from the dashboard's Persona
-section, so it's read fresh from disk on every call rather than cached.
+`target_persona.json` at the project root is now only a *template* used to seed a
+new user's persona on first login (see `src/auth.py`).
 """
-import json
+from __future__ import annotations
 
-from src.config import get_settings
-from src.models import Persona
+from sqlmodel import Session
 
-
-def load_persona() -> dict:
-    settings = get_settings()
-    if not settings.persona_file.exists():
-        raise FileNotFoundError(
-            f"Persona file not found at {settings.persona_file}. "
-            "Set one via the dashboard, or copy/edit target_persona.json at the project root."
-        )
-    return json.loads(settings.persona_file.read_text(encoding="utf-8"))
+from src.models import PersonaData
+from src.repositories import get_or_create_persona, save_persona_data
 
 
-def save_persona(persona: Persona) -> dict:
-    settings = get_settings()
-    data = persona.model_dump()
-    settings.persona_file.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
-    return data
+def load_persona(session: Session, user_id: str) -> dict:
+    return get_or_create_persona(session, user_id).to_data().model_dump()
 
 
-def persona_prompt_block(persona: dict | None = None) -> str:
+def save_persona(session: Session, user_id: str, data: PersonaData) -> dict:
+    return save_persona_data(session, user_id, data).to_data().model_dump()
+
+
+def persona_prompt_block(persona: dict) -> str:
     """Render the persona as a compact text block for inclusion in LLM prompts."""
-    persona = persona or load_persona()
     return (
         f"Persona: {persona.get('persona_name')}\n"
         f"OUTPUT LANGUAGE: {persona.get('language', 'Thai')} — write everything in this "

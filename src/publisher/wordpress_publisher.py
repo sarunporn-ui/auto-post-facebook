@@ -1,25 +1,28 @@
-"""WordPress REST API client for publishing long-form content to a website."""
+"""WordPress REST API client — publishes long-form content to a user's site.
+
+Credentials come from the caller's `WordPressConnection` row (decrypted just
+before the call), never from global env config.
+"""
 from __future__ import annotations
 import requests
 
-from src.config import get_settings
 
-
-def publish_to_wordpress(title: str, content_markdown: str, status: str = "draft") -> dict:
-    settings = get_settings()
-    if not (settings.wordpress_url and settings.wordpress_username and settings.wordpress_app_password):
-        raise RuntimeError(
-            "WORDPRESS_URL / WORDPRESS_USERNAME / WORDPRESS_APP_PASSWORD are not configured."
-        )
-
+def publish_to_wordpress(
+    site_url: str,
+    username: str,
+    app_password: str,
+    title: str,
+    content_markdown: str,
+    status: str = "draft",
+) -> dict:
     import markdown
 
     content_html = markdown.markdown(content_markdown, extensions=["extra"])
 
-    endpoint = f"{settings.wordpress_url.rstrip('/')}/wp-json/wp/v2/posts"
+    endpoint = f"{site_url.rstrip('/')}/wp-json/wp/v2/posts"
     response = requests.post(
         endpoint,
-        auth=(settings.wordpress_username, settings.wordpress_app_password),
+        auth=(username, app_password),
         json={"title": title, "content": content_html, "status": status},
         timeout=30,
     )
