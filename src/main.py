@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Optional
 
 from fastapi import Depends, FastAPI, Header, HTTPException
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from sqlmodel import Session
@@ -214,6 +214,45 @@ def healthz():
 @app.get("/dashboard")
 def dashboard():
     return FileResponse(WEB_DIR / "index.html")
+
+
+_LEGAL_PAGE = """<!doctype html><meta charset="utf-8"><title>{title}</title>
+<body style="font-family:system-ui;max-width:640px;margin:60px auto;padding:0 20px;line-height:1.6">
+<h1>{title}</h1>{body}</body>"""
+
+
+@app.get("/privacy", response_class=HTMLResponse)
+def privacy():
+    return _LEGAL_PAGE.format(
+        title="Privacy Policy — Content OS",
+        body="""
+<p>Content OS helps its users draft social content and publish it to a Facebook
+Page they explicitly connect.</p>
+<h3>What we store</h3>
+<ul>
+<li>Your account: the email/identifier from your sign-in provider (Supabase Auth).</li>
+<li>Content you create: ingested source text, generated drafts, your persona settings.</li>
+<li>A Facebook Page access token for a Page you choose to connect — encrypted at rest,
+used only to publish posts you schedule. Remove it any time with "Disconnect".</li>
+</ul>
+<h3>What we don't do</h3>
+<p>We don't sell data, and we don't post anything you didn't create and schedule.</p>
+<h3>Deletion</h3>
+<p>Disconnecting a Page deletes its token. To delete your account and all
+associated content, contact the operator of this instance.</p>
+""",
+    )
+
+
+@app.get("/data-deletion", response_class=HTMLResponse)
+def data_deletion():
+    return _LEGAL_PAGE.format(
+        title="Data Deletion — Content OS",
+        body="<p>To delete your data: open the dashboard, click <b>Disconnect</b> on the "
+        "Facebook Page card (this removes the stored token), then ask the operator of "
+        "this instance to delete your account. All your rows are keyed to your user id "
+        "and removed together.</p>",
+    )
 
 
 @app.get("/api/config")
