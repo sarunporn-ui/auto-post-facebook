@@ -68,6 +68,19 @@ def ingest_youtube(url: str) -> RawContent:
     except (TranscriptsDisabled, NoTranscriptFound):
         text = _fetch_via_whisper(url)
         method = "whisper"
+    except Exception as exc:
+        # Any other caption failure (YouTube blocking a datacenter IP, transient
+        # 429, parser change) — try the audio+Whisper path, then give up with a
+        # clear message rather than a bare 500.
+        try:
+            text = _fetch_via_whisper(url)
+            method = "whisper"
+        except Exception as exc2:
+            raise RuntimeError(
+                "Could not get this video's transcript. YouTube may be blocking "
+                f"requests from the server, or the video has no captions. "
+                f"({type(exc).__name__}: {exc}; whisper: {type(exc2).__name__}: {exc2})"
+            ) from exc2
 
     return RawContent(
         source_type="youtube",

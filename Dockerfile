@@ -1,10 +1,12 @@
 FROM python:3.13-slim
 
-# WeasyPrint runtime libs (Format 4 PDF) + Thai fonts for correct PDF rendering
+# WeasyPrint runtime libs (Format 4 PDF) + Thai fonts + ffmpeg (Whisper
+# fallback when a YouTube video has no captions) + ca-certificates (JWKS fetch)
 RUN apt-get update && apt-get install -y --no-install-recommends \
       libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf-2.0-0 \
       libcairo2 libffi8 libjpeg62-turbo shared-mime-info \
       fonts-thai-tlwg fonts-noto-cjk \
+      ffmpeg ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

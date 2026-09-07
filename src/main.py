@@ -316,7 +316,13 @@ def ingest_youtube_endpoint(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    raw_content = ingest_youtube(payload.url)
+    try:
+        raw_content = ingest_youtube(payload.url)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.exception("YouTube ingest failed for %s", payload.url)
+        raise HTTPException(status_code=502, detail=f"ดึงเนื้อหา YouTube ไม่สำเร็จ: {exc}")
     raw_content.user_id = current_user.id
     return raw_content_repo.add(session, raw_content)
 
@@ -327,7 +333,13 @@ def ingest_facebook_endpoint(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    raw_content = ingest_facebook(payload.url_or_text)
+    try:
+        raw_content = ingest_facebook(payload.url_or_text)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.exception("Facebook ingest failed")
+        raise HTTPException(status_code=502, detail=f"อ่านเนื้อหาไม่สำเร็จ: {exc}")
     raw_content.user_id = current_user.id
     return raw_content_repo.add(session, raw_content)
 
@@ -343,7 +355,11 @@ def analyze_endpoint(
         raise HTTPException(status_code=404, detail="Raw content not found")
 
     persona = load_persona(session, current_user.id)
-    takeaways, topics = analyze_content(raw_content, persona)
+    try:
+        takeaways, topics = analyze_content(raw_content, persona)
+    except Exception as exc:
+        logger.exception("analyze_content failed for %s", content_id)
+        raise HTTPException(status_code=502, detail=f"AI วิเคราะห์ไม่สำเร็จ: {exc}")
     if not topics:
         raise HTTPException(status_code=502, detail="AI Brain returned no topics")
 
