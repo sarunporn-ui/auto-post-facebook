@@ -466,12 +466,19 @@ async function initAuth() {
     try {
       const { data } = await sb.auth.exchangeCodeForSession(code);
       if (data && data.session) accessToken = data.session.access_token;
-    } catch (e) { /* fall through to getSession() */ }
+    } catch (e) { /* fall through to the poll below */ }
     history.replaceState({}, "", window.location.pathname);
   } else if (hasHashToken) {
-    // detectSessionInUrl handles the hash; give it a tick, then clean the URL.
-    await new Promise(r => setTimeout(r, 0));
     history.replaceState({}, "", window.location.pathname);
+  }
+
+  // Session may still be settling right after an OAuth return — poll briefly.
+  if ((code || hasHashToken) && !accessToken) {
+    for (let i = 0; i < 20 && !accessToken; i++) {
+      await new Promise(r => setTimeout(r, 100));
+      const { data } = await sb.auth.getSession();
+      if (data.session) accessToken = data.session.access_token;
+    }
   }
 
   document.getElementById("login-email-btn").addEventListener("click", async () => {
@@ -517,23 +524,15 @@ async function initAuth() {
   sb.auth.onAuthStateChange((event, session) => {
     accessToken = session ? session.access_token : null;
     if (!session) {
-      showLoginGate();
+      if (event === "SIGNED_OUT") { appEntered = false; showLoginGate(); }
       return;
     }
-    // Session appeared (e.g. OAuth round-trip finished after boot already ran).
-    // If the app isn't showing yet, reload once so boot() starts clean with the
-    // now-persisted session.
-    const appHidden = document.getElementById("app").style.display === "none"
-      || !document.getElementById("app").style.display;
-    if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && appHidden
-        && !sessionStorage.getItem("co_reloaded_after_login")) {
-      sessionStorage.setItem("co_reloaded_after_login", "1");
-      window.location.reload();
-    }
+    // Session arrived (e.g. OAuth round-trip finished after boot() already ran).
+    // Enter the app in place — no reload.
+    if (!appEntered) enterApp();
   });
 
-  await refreshToken();
-  if (accessToken) sessionStorage.removeItem("co_reloaded_after_login");
+  if (!accessToken) await refreshToken();
   return !!accessToken;
 }
 
@@ -1131,10 +1130,11 @@ async function handleFacebookReturn() {
   }
 }
 
-async function boot() {
-  const authed = await initAuth();
-  if (!authed) { showLoginGate(); return; }
+let appEntered = false;
 
+async function enterApp() {
+  if (appEntered) return;
+  appEntered = true;
   showApp();
 
   if (authEnabled) {
@@ -1155,6 +1155,12 @@ async function boot() {
   // Auto-fetch can add new ideas in the background — refresh periodically so
   // they show up without a manual page reload.
   setInterval(loadIdeas, 30000);
+}
+
+async function boot() {
+  const authed = await initAuth();
+  if (!authed) { showLoginGate(); return; }
+  enterApp();
 }
 
 boot();
