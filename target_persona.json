@@ -1,0 +1,29 @@
+{
+  "persona_name": "Growth-Minded Small Business Owner",
+  "language": "Thai",
+  "description": "Runs a small or mid-sized business, wears multiple hats, and is looking for practical ways to grow revenue without hiring a big team.",
+  "demographics": "Age 28-45, owns or co-owns a business with 1-20 employees, active on Facebook and YouTube, moderate technical skill.",
+  "pain_points": [
+    "Not enough time to create consistent content",
+    "Unsure which marketing channel actually drives sales",
+    "Overwhelmed by too many tools and too much conflicting advice"
+  ],
+  "goals": [
+    "Generate more qualified leads without increasing ad spend",
+    "Build an audience that trusts the brand",
+    "Turn existing knowledge/content into reusable marketing assets"
+  ],
+  "tone_of_voice": "Direct, encouraging, and practical — speaks like a knowledgeable peer, not a corporate brand. Avoids jargon.",
+  "content_pillars": [
+    "Practical marketing tactics",
+    "Behind-the-scenes business lessons",
+    "Customer success stories",
+    "Tools and systems for growth"
+  ],
+  "forbidden_topics": [
+    "Political commentary",
+    "Get-rich-quick claims",
+    "Unverified statistics"
+  ],
+  "preferred_cta": "Invite the reader to take one small, specific next step (comment a keyword, download a resource, or book a call) rather than a generic 'learn more'."
+}

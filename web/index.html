@@ -1,0 +1,845 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Content OS Dashboard</title>
+<style>
+  :root {
+    --bg: #f5f6f8;
+    --card: #ffffff;
+    --border: #e2e4e9;
+    --text: #1a1d23;
+    --muted: #6b7280;
+    --accent: #2f6fed;
+    --accent-text: #ffffff;
+    --success: #1a7f4e;
+    --success-bg: #e6f6ee;
+    --draft-bg: #fdf3e0;
+    --draft-text: #92600b;
+    --danger: #c0392b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14161a;
+      --card: #1e2126;
+      --border: #2c2f36;
+      --text: #eceef1;
+      --muted: #9aa1ac;
+      --accent: #5b8def;
+      --accent-text: #0b1220;
+      --success: #38c98a;
+      --success-bg: #12301f;
+      --draft-bg: #332609;
+      --draft-text: #e8b448;
+      --danger: #e0685c;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1400px; margin: 0 auto; padding: 32px 20px 80px; }
+  header { margin-bottom: 28px; }
+  header h1 { font-size: 24px; margin: 0 0 4px; }
+  header p { margin: 0; color: var(--muted); font-size: 14px; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .card h2 { font-size: 16px; margin: 0 0 14px; }
+  .card h3 { font-size: 14px; margin: 0 0 8px; }
+  details.card { padding: 0; }
+  details.card > summary {
+    list-style: none; cursor: pointer; padding: 20px; font-size: 16px; font-weight: 600;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  details.card > summary::-webkit-details-marker { display: none; }
+  details.card > summary::after { content: "▸"; color: var(--muted); font-weight: 400; }
+  details.card[open] > summary::after { content: "▾"; }
+  details.card > summary .subtitle { color: var(--muted); font-weight: 400; font-size: 13px; margin-left: 10px; }
+  details.card > .card-body { padding: 0 20px 20px; }
+
+  .tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+  .tab-btn {
+    flex: 1; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border);
+    background: transparent; color: var(--text); cursor: pointer; font-size: 13px;
+  }
+  .tab-btn.active { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  input[type=text], input[type=datetime-local], textarea, select {
+    width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--bg); color: var(--text); font-size: 14px; font-family: inherit;
+    resize: vertical; margin-bottom: 4px;
+  }
+  textarea { min-height: 80px; }
+
+  button.primary {
+    padding: 10px 16px; border-radius: 8px; border: none; background: var(--accent);
+    color: var(--accent-text); font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 10px;
+  }
+  button.primary:disabled { opacity: .5; cursor: default; }
+  button.secondary {
+    padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border); background: transparent;
+    color: var(--text); font-size: 13px; cursor: pointer;
+  }
+  button.secondary:disabled { opacity: .5; cursor: default; }
+
+  .muted { color: var(--muted); font-size: 13px; }
+  .status { font-size: 13px; margin-top: 10px; min-height: 18px; }
+  .status.error { color: var(--danger); }
+  .status.ok { color: var(--success); }
+
+  .empty { color: var(--muted); font-size: 14px; padding: 12px 0; }
+
+  .badge {
+    display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px;
+    background: var(--border); color: var(--muted); text-transform: uppercase; letter-spacing: .02em;
+  }
+  .badge.published { background: var(--success-bg); color: var(--success); }
+  .badge.draft { background: var(--draft-bg); color: var(--draft-text); }
+
+  .topic-option {
+    border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px;
+    cursor: pointer; font-size: 13px;
+  }
+  .topic-option strong { display: block; font-size: 13.5px; margin-bottom: 2px; }
+  .topic-option .preview { color: var(--muted); font-size: 12.5px; }
+  .topic-option.selected { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+
+  .format-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
+  .format-option {
+    border: 1px solid var(--border); border-radius: 8px; padding: 10px; cursor: pointer; font-size: 12.5px;
+  }
+  .format-option strong { display: block; font-size: 13px; }
+  .format-option .desc { color: var(--muted); font-size: 11.5px; }
+  .format-option.selected { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+
+  .spinner {
+    display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite;
+    vertical-align: middle; margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* --- 3-column board --- */
+  .board { display: grid; grid-template-columns: 1fr 1.3fr 1fr; gap: 16px; align-items: start; }
+  @media (max-width: 1000px) { .board { grid-template-columns: 1fr; } }
+  .board-col {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 20px; max-height: 82vh; overflow-y: auto;
+  }
+  .board-col h2 { font-size: 15px; margin: 0 0 14px; }
+
+  .day-heading {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+    color: var(--muted); margin: 18px 0 8px;
+  }
+  .day-heading:first-child { margin-top: 0; }
+
+  .idea-row { border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+  .idea-row-header { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px; cursor: pointer; }
+  .idea-row-header .src-title { font-weight: 600; font-size: 13.5px; }
+
+  .preview-header { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .preview-header strong { font-size: 15px; }
+  .preview-image { width: 100%; border-radius: 10px; margin-bottom: 12px; display: block; }
+  .preview-body {
+    white-space: pre-wrap; font-size: 13.5px; background: var(--bg); border-radius: 8px; padding: 14px;
+    border: 1px solid var(--border); margin-bottom: 12px;
+  }
+  .image-prompt-box {
+    font-size: 12.5px; background: var(--draft-bg); color: var(--draft-text); border-radius: 8px;
+    padding: 10px 12px; margin-bottom: 12px;
+  }
+  .preview-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .history-item {
+    border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; margin-bottom: 6px;
+    cursor: pointer; font-size: 12.5px;
+  }
+  .history-item.active { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+  .history-item strong { display: block; font-size: 12.5px; }
+
+  .platform-check { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; cursor: pointer; font-size: 14px; }
+  .platform-check input { width: 16px; height: 16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Content OS Dashboard</h1>
+    <p>Turn a video or post into ready-to-publish content — you review and approve every step.</p>
+  </header>
+
+  <details class="card" id="persona-card">
+    <summary>Your Persona <span class="subtitle">(edit anytime)</span></summary>
+    <div class="card-body">
+      <p class="muted">This describes who you're writing for. The AI uses it for every idea and every piece of content it generates — update it whenever your audience or style changes.</p>
+
+      <h3>Name</h3>
+      <input type="text" id="persona-name" placeholder="e.g. ร้านอาหารเพื่อสุขภาพสำหรับคนวัยทำงาน">
+
+      <h3>Output language <span class="muted">(all generated content will be written in this language)</span></h3>
+      <input type="text" id="persona-language" placeholder="e.g. Thai, English, ไทย">
+
+      <h3>Description</h3>
+      <textarea id="persona-description" placeholder="Short summary of who this persona is"></textarea>
+
+      <h3>Demographics</h3>
+      <input type="text" id="persona-demographics" placeholder="Age range, role, habits...">
+
+      <h3>Pain points <span class="muted">(one per line)</span></h3>
+      <textarea id="persona-pain-points" placeholder="ไม่มีเวลาทำคอนเทนต์เอง&#10;ไม่รู้ว่าช่องทางไหนได้ผลจริง"></textarea>
+
+      <h3>Goals <span class="muted">(one per line)</span></h3>
+      <textarea id="persona-goals" placeholder="อยากได้ลูกค้าใหม่มากขึ้น&#10;อยากให้คนรู้จักแบรนด์"></textarea>
+
+      <h3>Tone of voice</h3>
+      <input type="text" id="persona-tone" placeholder="เป็นกันเอง สนุก จริงใจ...">
+
+      <h3>Content pillars <span class="muted">(one per line)</span></h3>
+      <textarea id="persona-pillars" placeholder="เคล็ดลับที่ใช้ได้จริง&#10;เบื้องหลังธุรกิจ"></textarea>
+
+      <h3>Topics to avoid <span class="muted">(one per line)</span></h3>
+      <textarea id="persona-forbidden" placeholder="การเมือง&#10;คำกล่าวอ้างเกินจริง"></textarea>
+
+      <h3>Preferred call-to-action style</h3>
+      <textarea id="persona-cta" placeholder="ชวนให้ทำสิ่งเล็กๆ ที่ชัดเจน เช่น คอมเมนต์คำว่า..."></textarea>
+
+      <button class="primary" id="save-persona-btn">Save Persona</button>
+      <div class="status" id="persona-status"></div>
+    </div>
+  </details>
+
+  <details class="card" id="add-content-card" open>
+    <summary>1. Add new content</summary>
+    <div class="card-body">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="youtube">YouTube video</button>
+        <button class="tab-btn" data-tab="facebook">Facebook post / paste text</button>
+      </div>
+
+      <div class="tab-panel active" id="tab-youtube">
+        <input type="text" id="youtube-url" placeholder="Paste a YouTube video link (e.g. https://youtu.be/...)">
+      </div>
+      <div class="tab-panel" id="tab-facebook">
+        <textarea id="facebook-text" placeholder="Paste a Facebook post URL, or just paste the post text directly"></textarea>
+      </div>
+
+      <button class="primary" id="add-content-btn">Generate Ideas</button>
+      <div class="status" id="add-content-status"></div>
+    </div>
+  </details>
+
+  <details class="card" id="watch-card">
+    <summary>Auto-fetch new videos <span class="subtitle">(optional)</span></summary>
+    <div class="card-body">
+      <p class="muted">Turn this on and the system checks your YouTube channel on its own — new videos turn into ideas below without you pasting anything.</p>
+
+      <label style="display:flex; align-items:center; gap:8px; margin-bottom:14px; cursor:pointer;">
+        <input type="checkbox" id="watch-enabled" style="width:16px; height:16px;">
+        <span>Enable auto-fetch</span>
+      </label>
+
+      <h3>YouTube channel link</h3>
+      <input type="text" id="watch-channel-url" placeholder="https://www.youtube.com/@yourchannel">
+
+      <h3>Check frequency</h3>
+      <select id="watch-interval">
+        <option value="1">Every hour</option>
+        <option value="6">Every 6 hours</option>
+        <option value="24" selected>Once a day</option>
+      </select>
+
+      <button class="primary" id="save-watch-btn">Save</button>
+      <button class="secondary" id="check-now-btn">Check now</button>
+      <div class="status" id="watch-status"></div>
+    </div>
+  </details>
+
+  <section class="board">
+    <div class="board-col" id="col-ideas">
+      <h2>Ideas <span class="muted">— pick one, choose a format</span></h2>
+      <div id="ideas-list"><div class="empty">Nothing waiting yet — add content above.</div></div>
+    </div>
+
+    <div class="board-col" id="col-preview">
+      <h2>Preview</h2>
+      <div id="preview-panel"><div class="empty">Select an idea on the left and click Generate — the real content (and image, if this format has one) will show here.</div></div>
+      <div id="history-section" style="display:none;">
+        <h3 style="margin-top:22px;">Recent</h3>
+        <div id="history-list"></div>
+      </div>
+    </div>
+
+    <div class="board-col" id="col-publish">
+      <h2>Publish</h2>
+      <div id="publish-panel"><div class="empty">Generate a piece of content first.</div></div>
+    </div>
+  </section>
+</div>
+
+<script>
+const FORMATS = {
+  1: { name: "Website Article", desc: "Long SEO article for your site", publish: "wordpress", publishLabel: "Website" },
+  2: { name: "Social Post", desc: "Short hook post + real image", publish: "facebook", publishLabel: "Facebook" },
+  3: { name: "Facebook Offer", desc: "Problem → Solution → Offer → CTA post", publish: "facebook", publishLabel: "Facebook" },
+  4: { name: "PDF Guide", desc: "Downloadable PDF (e.g. '101 Ideas')", publish: null, publishLabel: null },
+  5: { name: "TikTok Script", desc: "60-second script with timestamps", publish: null, publishLabel: null },
+};
+
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+  });
+});
+
+function setStatus(el, message, kind) {
+  el.textContent = message || "";
+  el.className = "status" + (kind ? " " + kind : "");
+}
+
+async function fetchJSON(url, options) {
+  const res = await fetch(url, options);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.detail || ("Request failed (" + res.status + ")"));
+  }
+  return data;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str == null ? "" : String(str);
+  return div.innerHTML;
+}
+
+function linesToArray(text) {
+  return text.split("\n").map(s => s.trim()).filter(Boolean);
+}
+function arrayToLines(arr) {
+  return (arr || []).join("\n");
+}
+
+// ---------------------------------------------------------------- Persona --
+
+async function loadPersona() {
+  const p = await fetchJSON("/api/persona");
+  document.getElementById("persona-name").value = p.persona_name || "";
+  document.getElementById("persona-language").value = p.language || "Thai";
+  document.getElementById("persona-description").value = p.description || "";
+  document.getElementById("persona-demographics").value = p.demographics || "";
+  document.getElementById("persona-pain-points").value = arrayToLines(p.pain_points);
+  document.getElementById("persona-goals").value = arrayToLines(p.goals);
+  document.getElementById("persona-tone").value = p.tone_of_voice || "";
+  document.getElementById("persona-pillars").value = arrayToLines(p.content_pillars);
+  document.getElementById("persona-forbidden").value = arrayToLines(p.forbidden_topics);
+  document.getElementById("persona-cta").value = p.preferred_cta || "";
+}
+
+document.getElementById("save-persona-btn").addEventListener("click", async () => {
+  const btn = document.getElementById("save-persona-btn");
+  const statusEl = document.getElementById("persona-status");
+  const payload = {
+    persona_name: document.getElementById("persona-name").value.trim(),
+    language: document.getElementById("persona-language").value.trim() || "Thai",
+    description: document.getElementById("persona-description").value.trim(),
+    demographics: document.getElementById("persona-demographics").value.trim(),
+    pain_points: linesToArray(document.getElementById("persona-pain-points").value),
+    goals: linesToArray(document.getElementById("persona-goals").value),
+    tone_of_voice: document.getElementById("persona-tone").value.trim(),
+    content_pillars: linesToArray(document.getElementById("persona-pillars").value),
+    forbidden_topics: linesToArray(document.getElementById("persona-forbidden").value),
+    preferred_cta: document.getElementById("persona-cta").value.trim(),
+  };
+  if (!payload.persona_name) { setStatus(statusEl, "Give your persona a name first.", "error"); return; }
+
+  btn.disabled = true;
+  try {
+    await fetchJSON("/api/persona", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    setStatus(statusEl, "Saved — new content will use this persona.", "ok");
+  } catch (err) {
+    setStatus(statusEl, "Couldn't save: " + err.message, "error");
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// ------------------------------------------------------------ Watch config --
+
+function renderWatchStatus(cfg) {
+  const statusEl = document.getElementById("watch-status");
+  if (!cfg.enabled) {
+    setStatus(statusEl, "Auto-fetch is off.");
+    return;
+  }
+  const last = cfg.last_checked_at
+    ? new Date(cfg.last_checked_at * 1000).toLocaleString()
+    : "not yet — will check soon";
+  setStatus(statusEl, "Auto-fetch is on. Last checked: " + last + ".", "ok");
+}
+
+async function loadWatchConfig() {
+  const cfg = await fetchJSON("/api/watch-config");
+  document.getElementById("watch-enabled").checked = !!cfg.enabled;
+  document.getElementById("watch-channel-url").value = cfg.channel_url || "";
+  document.getElementById("watch-interval").value = String(cfg.check_interval_hours || 24);
+  renderWatchStatus(cfg);
+}
+
+document.getElementById("save-watch-btn").addEventListener("click", async () => {
+  const btn = document.getElementById("save-watch-btn");
+  const statusEl = document.getElementById("watch-status");
+  const payload = {
+    enabled: document.getElementById("watch-enabled").checked,
+    channel_url: document.getElementById("watch-channel-url").value.trim(),
+    check_interval_hours: Number(document.getElementById("watch-interval").value),
+  };
+  if (payload.enabled && !payload.channel_url) {
+    setStatus(statusEl, "Paste your channel link first.", "error");
+    return;
+  }
+  btn.disabled = true;
+  try {
+    const cfg = await fetchJSON("/api/watch-config", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    renderWatchStatus(cfg);
+  } catch (err) {
+    setStatus(statusEl, "Couldn't save: " + err.message, "error");
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+document.getElementById("check-now-btn").addEventListener("click", async () => {
+  const btn = document.getElementById("check-now-btn");
+  const statusEl = document.getElementById("watch-status");
+  btn.disabled = true;
+  const originalLabel = btn.textContent;
+  btn.innerHTML = '<span class="spinner"></span>Checking…';
+  try {
+    const result = await fetchJSON("/api/watch-config/check-now", { method: "POST" });
+    setStatus(statusEl, "Checked now — found " + result.new_approval_ids.length + " new video(s).", "ok");
+    await loadIdeas();
+    await loadWatchConfig();
+  } catch (err) {
+    setStatus(statusEl, "Check failed: " + err.message, "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+});
+
+// -------------------------------------------------------------- Add content --
+
+document.getElementById("add-content-btn").addEventListener("click", async () => {
+  const btn = document.getElementById("add-content-btn");
+  const statusEl = document.getElementById("add-content-status");
+  const activeTab = document.querySelector(".tab-btn.active").dataset.tab;
+
+  let ingestUrl, ingestBody;
+  if (activeTab === "youtube") {
+    const url = document.getElementById("youtube-url").value.trim();
+    if (!url) { setStatus(statusEl, "Paste a YouTube link first.", "error"); return; }
+    ingestUrl = "/ingest/youtube";
+    ingestBody = { url };
+  } else {
+    const text = document.getElementById("facebook-text").value.trim();
+    if (!text) { setStatus(statusEl, "Paste a post link or some text first.", "error"); return; }
+    ingestUrl = "/ingest/facebook";
+    ingestBody = { url_or_text: text };
+  }
+
+  btn.disabled = true;
+  setStatus(statusEl, "⏳ Reading the content and generating ideas — this can take up to 30 seconds…");
+
+  try {
+    const raw = await fetchJSON(ingestUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(ingestBody),
+    });
+    await fetchJSON("/analyze/" + raw.id, { method: "POST" });
+
+    setStatus(statusEl, "Done! New ideas are ready on the left.", "ok");
+    document.getElementById("youtube-url").value = "";
+    document.getElementById("facebook-text").value = "";
+    await loadIdeas();
+  } catch (err) {
+    setStatus(statusEl, "Something went wrong: " + err.message, "error");
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// -------------------------------------------------------------- Left: Ideas --
+
+let selection = {}; // approvalId -> { topicId, formatType }
+
+function dayLabel(unixSeconds) {
+  const d = new Date(unixSeconds * 1000);
+  const today = new Date();
+  const isSameDay = (a, b) => a.toDateString() === b.toDateString();
+  const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+  if (isSameDay(d, today)) return "Today";
+  if (isSameDay(d, yesterday)) return "Yesterday";
+  return d.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
+}
+
+async function loadIdeas() {
+  const container = document.getElementById("ideas-list");
+  const items = await fetchJSON("/api/pending");
+  if (!items.length) {
+    container.innerHTML = '<div class="empty">Nothing waiting yet — add content above.</div>';
+    return;
+  }
+
+  container.innerHTML = "";
+  let lastDay = null;
+
+  items.forEach(item => {
+    const approval = item.approval;
+    selection[approval.id] = selection[approval.id] || { topicId: null, formatType: null };
+
+    const day = dayLabel(approval.created_at);
+    if (day !== lastDay) {
+      const heading = document.createElement("div");
+      heading.className = "day-heading";
+      heading.textContent = day;
+      container.appendChild(heading);
+      lastDay = day;
+    }
+
+    const row = document.createElement("div");
+    row.className = "idea-row";
+
+    const header = document.createElement("div");
+    header.className = "idea-row-header";
+    header.innerHTML = `<span class="src-title">${escapeHtml(item.content_title)}</span><span class="badge">${escapeHtml(item.content_source_type || "")}</span>`;
+    row.appendChild(header);
+
+    approval.topics.forEach(topic => {
+      const el = document.createElement("div");
+      el.className = "topic-option" + (selection[approval.id].topicId === topic.id ? " selected" : "");
+      el.innerHTML = `<strong>${escapeHtml(topic.title)}</strong><span class="preview">${escapeHtml(topic.preview)}</span>`;
+      el.addEventListener("click", () => {
+        selection[approval.id].topicId = topic.id;
+        renderRow();
+      });
+      row.appendChild(el);
+    });
+
+    const formatSection = document.createElement("div");
+    const renderRow = () => {
+      formatSection.innerHTML = "";
+      if (!selection[approval.id].topicId) return;
+
+      const grid = document.createElement("div");
+      grid.className = "format-grid";
+      Object.entries(FORMATS).forEach(([num, info]) => {
+        const opt = document.createElement("div");
+        opt.className = "format-option" + (String(selection[approval.id].formatType) === num ? " selected" : "");
+        opt.innerHTML = `<strong>${num}. ${info.name}</strong><span class="desc">${info.desc}</span>`;
+        opt.addEventListener("click", () => {
+          selection[approval.id].formatType = Number(num);
+          renderRow();
+        });
+        grid.appendChild(opt);
+      });
+      formatSection.appendChild(grid);
+
+      const promptLabel = document.createElement("h3");
+      promptLabel.textContent = "Optional: custom style/tone instructions";
+      formatSection.appendChild(promptLabel);
+
+      const promptInput = document.createElement("textarea");
+      promptInput.placeholder = "e.g. \"make it funnier\", \"more formal\", \"mention our 20% discount\"";
+      formatSection.appendChild(promptInput);
+
+      const genBtn = document.createElement("button");
+      genBtn.className = "primary";
+      genBtn.textContent = "Generate";
+      genBtn.disabled = !selection[approval.id].formatType;
+      genBtn.addEventListener("click", async () => {
+        genBtn.disabled = true;
+        const genLabel = genBtn.textContent;
+        genBtn.innerHTML = '<span class="spinner"></span>Generating…';
+        try {
+          const generated = await fetchJSON("/api/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              approval_id: approval.id,
+              topic_id: selection[approval.id].topicId,
+              format_type: selection[approval.id].formatType,
+              custom_prompt: promptInput.value.trim(),
+            }),
+          });
+          delete selection[approval.id];
+          setActiveGenerated(generated);
+          await Promise.all([loadIdeas(), loadHistory()]);
+        } catch (err) {
+          genBtn.disabled = false;
+          genBtn.textContent = genLabel;
+          alert("Couldn't generate content: " + err.message);
+        }
+      });
+      formatSection.appendChild(genBtn);
+    };
+    renderRow();
+    row.appendChild(formatSection);
+
+    container.appendChild(row);
+  });
+}
+
+// ----------------------------------------------------- Middle: Preview + history --
+
+let activeGenerated = null;
+
+function setActiveGenerated(generated) {
+  activeGenerated = generated;
+  renderPreviewPanel();
+  renderPublishPanel();
+}
+
+function renderPreviewPanel() {
+  const panel = document.getElementById("preview-panel");
+  if (!activeGenerated) {
+    panel.innerHTML = '<div class="empty">Select an idea on the left and click Generate — the real content (and image, if this format has one) will show here.</div>';
+    return;
+  }
+  const gen = activeGenerated;
+  const info = FORMATS[gen.format_type] || { name: "Unknown format" };
+
+  panel.innerHTML = "";
+
+  const header = document.createElement("div");
+  header.className = "preview-header";
+  header.innerHTML = `
+    <strong>${escapeHtml(gen.title)}</strong>
+    <span class="badge">${info.name}</span>
+    <span class="badge ${gen.status === "published" ? "published" : "draft"}">${gen.status}</span>
+  `;
+  panel.appendChild(header);
+
+  if (gen.extra && gen.extra.image_path) {
+    const img = document.createElement("img");
+    img.className = "preview-image";
+    img.src = "/generated/" + gen.id + "/image";
+    panel.appendChild(img);
+  } else if (gen.extra && gen.extra.image_prompt) {
+    const box = document.createElement("div");
+    box.className = "image-prompt-box";
+    box.innerHTML = `<strong>Image idea:</strong> ${escapeHtml(gen.extra.image_prompt)}<br><span class="muted">Add an OpenAI API key to generate a real image here automatically.</span>`;
+    panel.appendChild(box);
+  }
+
+  const body = document.createElement("div");
+  body.className = "preview-body";
+  body.textContent = gen.body;
+  panel.appendChild(body);
+
+  const actions = document.createElement("div");
+  actions.className = "preview-actions";
+
+  const copyBtn = document.createElement("button");
+  copyBtn.className = "secondary";
+  copyBtn.textContent = "Copy text";
+  copyBtn.addEventListener("click", () => {
+    navigator.clipboard.writeText(gen.body);
+    copyBtn.textContent = "Copied!";
+    setTimeout(() => (copyBtn.textContent = "Copy text"), 1500);
+  });
+  actions.appendChild(copyBtn);
+
+  if (gen.extra && gen.extra.pdf_path) {
+    const dl = document.createElement("a");
+    dl.className = "secondary";
+    dl.style.textDecoration = "none";
+    dl.style.display = "inline-block";
+    dl.textContent = "Download PDF";
+    dl.href = "/generated/" + gen.id + "/download";
+    actions.appendChild(dl);
+  }
+
+  panel.appendChild(actions);
+}
+
+async function loadHistory() {
+  const section = document.getElementById("history-section");
+  const container = document.getElementById("history-list");
+  const items = await fetchJSON("/api/generated");
+  if (!items.length) {
+    section.style.display = "none";
+    return;
+  }
+  section.style.display = "block";
+  container.innerHTML = "";
+  items.forEach(gen => {
+    const info = FORMATS[gen.format_type] || { name: "Unknown format" };
+    const row = document.createElement("div");
+    row.className = "history-item" + (activeGenerated && activeGenerated.id === gen.id ? " active" : "");
+    row.innerHTML = `<strong>${escapeHtml(gen.title || info.name)}</strong><span class="muted">${info.name} — ${gen.status}</span>`;
+    row.addEventListener("click", () => {
+      setActiveGenerated(gen);
+      loadHistory();
+    });
+    container.appendChild(row);
+  });
+}
+
+// ------------------------------------------------------------- Right: Publish --
+
+function renderPublishPanel() {
+  const panel = document.getElementById("publish-panel");
+  if (!activeGenerated) {
+    panel.innerHTML = '<div class="empty">Generate a piece of content first.</div>';
+    return;
+  }
+
+  const gen = activeGenerated;
+  const channels = [
+    { value: "facebook", label: "Facebook" },
+    { value: "wordpress", label: "Website (WordPress)" },
+  ];
+  const info = FORMATS[gen.format_type] || {};
+
+  if (!info.publish) {
+    panel.innerHTML = '<div class="empty">This format is for manual use (download or copy it) — no auto-publish channel applies.</div>';
+    return;
+  }
+
+  panel.innerHTML = "";
+
+  const checksWrap = document.createElement("div");
+  channels.forEach(ch => {
+    const label = document.createElement("label");
+    label.className = "platform-check";
+    const checked = (gen.scheduled_channels || []).includes(ch.value) || info.publish === ch.value;
+    label.innerHTML = `<input type="checkbox" value="${ch.value}" ${checked ? "checked" : ""}> ${ch.label}`;
+    checksWrap.appendChild(label);
+  });
+  panel.appendChild(checksWrap);
+
+  const getCheckedChannels = () =>
+    Array.from(checksWrap.querySelectorAll("input:checked")).map(el => el.value);
+
+  const h3 = document.createElement("h3");
+  h3.textContent = "Schedule for later (optional)";
+  h3.style.marginTop = "14px";
+  panel.appendChild(h3);
+
+  const dtInput = document.createElement("input");
+  dtInput.type = "datetime-local";
+  if (gen.scheduled_at) {
+    const d = new Date(gen.scheduled_at * 1000);
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    dtInput.value = d.toISOString().slice(0, 16);
+  }
+  panel.appendChild(dtInput);
+
+  const statusEl = document.createElement("div");
+  statusEl.className = "status";
+  if (gen.schedule_error) {
+    setStatus(statusEl, "Last attempt failed: " + gen.schedule_error, "error");
+  } else if (gen.scheduled_at) {
+    setStatus(statusEl, "Scheduled for " + new Date(gen.scheduled_at * 1000).toLocaleString() + ".", "ok");
+  }
+
+  const scheduleBtn = document.createElement("button");
+  scheduleBtn.className = "secondary";
+  scheduleBtn.textContent = "Save schedule";
+  scheduleBtn.addEventListener("click", async () => {
+    const chosen = getCheckedChannels();
+    if (!chosen.length) { setStatus(statusEl, "Pick at least one platform.", "error"); return; }
+    if (!dtInput.value) { setStatus(statusEl, "Pick a date and time first.", "error"); return; }
+    const scheduledAt = new Date(dtInput.value).getTime() / 1000;
+    scheduleBtn.disabled = true;
+    try {
+      const updated = await fetchJSON("/generated/" + gen.id + "/schedule", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ channels: chosen, scheduled_at: scheduledAt }),
+      });
+      activeGenerated = updated;
+      setStatus(statusEl, "Scheduled for " + new Date(scheduledAt * 1000).toLocaleString() + ".", "ok");
+      await loadHistory();
+    } catch (err) {
+      setStatus(statusEl, "Couldn't schedule: " + err.message, "error");
+    } finally {
+      scheduleBtn.disabled = false;
+    }
+  });
+  panel.appendChild(scheduleBtn);
+
+  const publishNowBtn = document.createElement("button");
+  publishNowBtn.className = "primary";
+  publishNowBtn.textContent = gen.status === "published" ? "Published" : "Publish now";
+  publishNowBtn.disabled = gen.status === "published";
+  publishNowBtn.addEventListener("click", async () => {
+    const chosen = getCheckedChannels();
+    if (!chosen.length) { setStatus(statusEl, "Pick at least one platform.", "error"); return; }
+    publishNowBtn.disabled = true;
+    publishNowBtn.innerHTML = '<span class="spinner"></span>Publishing…';
+    const errors = [];
+    for (const channel of chosen) {
+      try {
+        await fetchJSON("/publish/" + gen.id, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ channel }),
+        });
+      } catch (err) {
+        errors.push(channel + ": " + err.message);
+      }
+    }
+    const refreshed = await fetchJSON("/generated/" + gen.id);
+    activeGenerated = refreshed;
+    if (errors.length) {
+      setStatus(statusEl, "Some platforms failed — " + errors.join("; "), "error");
+      publishNowBtn.disabled = false;
+      publishNowBtn.textContent = "Publish now";
+    } else {
+      setStatus(statusEl, "Published!", "ok");
+      renderPublishPanel();
+    }
+    renderPreviewPanel();
+    await loadHistory();
+  });
+  panel.appendChild(publishNowBtn);
+  panel.appendChild(statusEl);
+}
+
+loadPersona();
+loadWatchConfig();
+loadIdeas();
+loadHistory();
+
+// Auto-fetch can add new ideas in the background — refresh periodically so
+// they show up without a manual page reload.
+setInterval(loadIdeas, 30000);
+</script>
+</body>
+</html>
