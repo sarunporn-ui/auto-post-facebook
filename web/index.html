@@ -457,13 +457,20 @@ async function initAuth() {
 
   readAuthErrorFromUrl();
 
-  // PKCE fallback: if we came back with ?code= but the session wasn't picked up
-  // automatically, exchange it explicitly.
-  const code = new URLSearchParams(window.location.search).get("code");
+  // Returning from an OAuth provider: consume the ?code= (PKCE) or #access_token=
+  // (implicit) and establish the session before we decide whether to show the app.
+  const url = new URL(window.location.href);
+  const code = url.searchParams.get("code");
+  const hasHashToken = /access_token=/.test(window.location.hash);
   if (code) {
     try {
-      await sb.auth.exchangeCodeForSession(code);
-    } catch (e) { /* onAuthStateChange / getSession below will decide */ }
+      const { data } = await sb.auth.exchangeCodeForSession(code);
+      if (data && data.session) accessToken = data.session.access_token;
+    } catch (e) { /* fall through to getSession() */ }
+    history.replaceState({}, "", window.location.pathname);
+  } else if (hasHashToken) {
+    // detectSessionInUrl handles the hash; give it a tick, then clean the URL.
+    await new Promise(r => setTimeout(r, 0));
     history.replaceState({}, "", window.location.pathname);
   }
 
@@ -507,12 +514,26 @@ async function initAuth() {
     showLoginGate();
   });
 
-  sb.auth.onAuthStateChange((_event, session) => {
+  sb.auth.onAuthStateChange((event, session) => {
     accessToken = session ? session.access_token : null;
-    if (!session) showLoginGate();
+    if (!session) {
+      showLoginGate();
+      return;
+    }
+    // Session appeared (e.g. OAuth round-trip finished after boot already ran).
+    // If the app isn't showing yet, reload once so boot() starts clean with the
+    // now-persisted session.
+    const appHidden = document.getElementById("app").style.display === "none"
+      || !document.getElementById("app").style.display;
+    if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && appHidden
+        && !sessionStorage.getItem("co_reloaded_after_login")) {
+      sessionStorage.setItem("co_reloaded_after_login", "1");
+      window.location.reload();
+    }
   });
 
   await refreshToken();
+  if (accessToken) sessionStorage.removeItem("co_reloaded_after_login");
   return !!accessToken;
 }
 
