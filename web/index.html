@@ -431,12 +431,41 @@ function setLoginMsg(text, kind) {
   el.className = "login-msg" + (kind ? " " + kind : "");
 }
 
+function readAuthErrorFromUrl() {
+  // Supabase bounces back with ?error=... or #error=... when a provider flow is
+  // rejected (rate limit, misconfig, user cancel). Surface it instead of a
+  // silent return to the login screen.
+  const q = new URLSearchParams(window.location.search);
+  const h = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const err = q.get("error_description") || q.get("error") || h.get("error_description") || h.get("error");
+  if (err) {
+    history.replaceState({}, "", window.location.pathname);
+    let msg = decodeURIComponent(err.replace(/\+/g, " "));
+    if (/rate limit/i.test(msg)) msg += " — ลองใหม่อีกครั้งใน ~1 ชั่วโมง (ขีดจำกัดอีเมลของ Supabase)";
+    setLoginMsg(msg, "error");
+  }
+}
+
 async function initAuth() {
   const cfg = await fetch("/api/config").then(r => r.json()).catch(() => ({ auth_enabled: false }));
   authEnabled = !!cfg.auth_enabled;
   if (!authEnabled) return true;  // dev mode — straight into the app
 
-  sb = window.supabase.createClient(cfg.supabase_url, cfg.supabase_anon_key);
+  sb = window.supabase.createClient(cfg.supabase_url, cfg.supabase_anon_key, {
+    auth: { detectSessionInUrl: true, persistSession: true, autoRefreshToken: true },
+  });
+
+  readAuthErrorFromUrl();
+
+  // PKCE fallback: if we came back with ?code= but the session wasn't picked up
+  // automatically, exchange it explicitly.
+  const code = new URLSearchParams(window.location.search).get("code");
+  if (code) {
+    try {
+      await sb.auth.exchangeCodeForSession(code);
+    } catch (e) { /* onAuthStateChange / getSession below will decide */ }
+    history.replaceState({}, "", window.location.pathname);
+  }
 
   document.getElementById("login-email-btn").addEventListener("click", async () => {
     const email = document.getElementById("login-email").value.trim();
@@ -446,14 +475,30 @@ async function initAuth() {
       email,
       options: { emailRedirectTo: window.location.origin + "/dashboard" },
     });
-    setLoginMsg(error ? error.message : "เช็กอีเมลของคุณเพื่อกดลิงก์เข้าสู่ระบบ", error ? "error" : "ok");
+    if (error) {
+      let m = error.message || "ส่งอีเมลไม่สำเร็จ";
+      if (/rate limit/i.test(m)) m = "ส่งอีเมลบ่อยเกินไป — Supabase ตัวฟรีจำกัด ~3-4 ฉบับ/ชม. ลองใหม่ภายหลัง หรือใช้ Google";
+      setLoginMsg(m, "error");
+    } else {
+      setLoginMsg("เช็กอีเมลของคุณเพื่อกดลิงก์เข้าสู่ระบบ", "ok");
+    }
   });
 
   document.getElementById("login-google-btn").addEventListener("click", async () => {
-    await sb.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: window.location.origin + "/dashboard" },
-    });
+    setLoginMsg("กำลังพาไป Google…");
+    try {
+      const { data, error } = await sb.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: window.location.origin + "/dashboard", skipBrowserRedirect: true },
+      });
+      if (error || !data || !data.url) {
+        setLoginMsg((error && error.message) || "เริ่มการเข้าสู่ระบบ Google ไม่สำเร็จ", "error");
+        return;
+      }
+      window.location.assign(data.url);
+    } catch (e) {
+      setLoginMsg("Google login error: " + (e && e.message ? e.message : e), "error");
+    }
   });
 
   document.getElementById("logout-btn").addEventListener("click", async () => {
