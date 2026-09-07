@@ -431,54 +431,24 @@ function setLoginMsg(text, kind) {
   el.className = "login-msg" + (kind ? " " + kind : "");
 }
 
-function readAuthErrorFromUrl() {
-  // Supabase bounces back with ?error=... or #error=... when a provider flow is
-  // rejected (rate limit, misconfig, user cancel). Surface it instead of a
-  // silent return to the login screen.
-  const q = new URLSearchParams(window.location.search);
-  const h = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-  const err = q.get("error_description") || q.get("error") || h.get("error_description") || h.get("error");
-  if (err) {
-    history.replaceState({}, "", window.location.pathname);
-    let msg = decodeURIComponent(err.replace(/\+/g, " "));
-    if (/rate limit/i.test(msg)) msg += " — ลองใหม่อีกครั้งใน ~1 ชั่วโมง (ขีดจำกัดอีเมลของ Supabase)";
-    setLoginMsg(msg, "error");
-  }
-}
-
 async function initAuth() {
   const cfg = await fetch("/api/config").then(r => r.json()).catch(() => ({ auth_enabled: false }));
   authEnabled = !!cfg.auth_enabled;
   if (!authEnabled) return true;  // dev mode — straight into the app
 
-  sb = window.supabase.createClient(cfg.supabase_url, cfg.supabase_anon_key, {
-    auth: { detectSessionInUrl: true, persistSession: true, autoRefreshToken: true },
-  });
+  // Defaults: flowType 'pkce', detectSessionInUrl true, persistSession true.
+  // getSession() below awaits the library's initialize step, which is what
+  // consumes the ?code=/#access_token= after an OAuth redirect.
+  sb = window.supabase.createClient(cfg.supabase_url, cfg.supabase_anon_key);
 
-  readAuthErrorFromUrl();
-
-  // Returning from an OAuth provider: consume the ?code= (PKCE) or #access_token=
-  // (implicit) and establish the session before we decide whether to show the app.
-  const url = new URL(window.location.href);
-  const code = url.searchParams.get("code");
-  const hasHashToken = /access_token=/.test(window.location.hash);
-  if (code) {
-    try {
-      const { data } = await sb.auth.exchangeCodeForSession(code);
-      if (data && data.session) accessToken = data.session.access_token;
-    } catch (e) { /* fall through to the poll below */ }
-    history.replaceState({}, "", window.location.pathname);
-  } else if (hasHashToken) {
-    history.replaceState({}, "", window.location.pathname);
-  }
-
-  // Session may still be settling right after an OAuth return — poll briefly.
-  if ((code || hasHashToken) && !accessToken) {
-    for (let i = 0; i < 20 && !accessToken; i++) {
-      await new Promise(r => setTimeout(r, 100));
-      const { data } = await sb.auth.getSession();
-      if (data.session) accessToken = data.session.access_token;
-    }
+  // Surface an explicit provider error (rate limit / cancel / misconfig).
+  const p = new URLSearchParams(window.location.search);
+  const hp = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const err = p.get("error_description") || p.get("error") || hp.get("error_description") || hp.get("error");
+  if (err) {
+    let msg = decodeURIComponent(err.replace(/\+/g, " "));
+    if (/rate limit/i.test(msg)) msg += " — ลองใหม่ภายหลัง หรือใช้ Google";
+    setLoginMsg(msg, "error");
   }
 
   document.getElementById("login-email-btn").addEventListener("click", async () => {
@@ -500,24 +470,17 @@ async function initAuth() {
 
   document.getElementById("login-google-btn").addEventListener("click", async () => {
     setLoginMsg("กำลังพาไป Google…");
-    try {
-      const { data, error } = await sb.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo: window.location.origin + "/dashboard", skipBrowserRedirect: true },
-      });
-      if (error || !data || !data.url) {
-        setLoginMsg((error && error.message) || "เริ่มการเข้าสู่ระบบ Google ไม่สำเร็จ", "error");
-        return;
-      }
-      window.location.assign(data.url);
-    } catch (e) {
-      setLoginMsg("Google login error: " + (e && e.message ? e.message : e), "error");
-    }
+    const { error } = await sb.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin + "/dashboard" },
+    });
+    if (error) setLoginMsg(error.message || "เริ่มการเข้าสู่ระบบ Google ไม่สำเร็จ", "error");
   });
 
   document.getElementById("logout-btn").addEventListener("click", async () => {
     await sb.auth.signOut();
     accessToken = null;
+    appEntered = false;
     showLoginGate();
   });
 
@@ -527,12 +490,18 @@ async function initAuth() {
       if (event === "SIGNED_OUT") { appEntered = false; showLoginGate(); }
       return;
     }
-    // Session arrived (e.g. OAuth round-trip finished after boot() already ran).
-    // Enter the app in place — no reload.
+    // Session arrived (fresh, refreshed, or the OAuth round-trip just finished).
     if (!appEntered) enterApp();
   });
 
-  if (!accessToken) await refreshToken();
+  // getSession() waits for the library's initialize step, which consumes the
+  // ?code= / #access_token= left by an OAuth redirect.
+  await refreshToken();
+
+  // Tidy the address bar after an OAuth return.
+  if (/[?#].*(code=|access_token=|error=)/.test(window.location.href)) {
+    history.replaceState({}, "", window.location.pathname);
+  }
   return !!accessToken;
 }
 
