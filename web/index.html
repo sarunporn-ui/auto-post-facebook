@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Content OS Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <style>
   :root {
     --bg: #f5f6f8;
@@ -173,13 +174,70 @@
 
   .platform-check { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; cursor: pointer; font-size: 14px; }
   .platform-check input { width: 16px; height: 16px; }
+
+  /* --- Auth --- */
+  #app { display: none; }
+  #login-gate {
+    position: fixed; inset: 0; background: var(--bg); z-index: 100;
+    display: none; align-items: center; justify-content: center; padding: 20px;
+  }
+  #login-gate.show { display: flex; }
+  .login-box {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 32px; width: 100%; max-width: 380px;
+  }
+  .login-box h1 { font-size: 20px; margin: 0 0 6px; }
+  .login-box p { color: var(--muted); font-size: 13px; margin: 0 0 20px; }
+  .login-box input {
+    width: 100%; padding: 11px 12px; border: 1px solid var(--border);
+    border-radius: 9px; background: var(--bg); color: var(--text); font-size: 14px; margin-bottom: 10px;
+  }
+  .login-box button {
+    width: 100%; padding: 11px 12px; border-radius: 9px; border: none; cursor: pointer;
+    font-size: 14px; font-weight: 600; margin-bottom: 10px;
+  }
+  .btn-primary { background: var(--accent); color: var(--accent-text); }
+  .btn-google { background: var(--card); color: var(--text); border: 1px solid var(--border) !important; }
+  .login-divider { text-align: center; color: var(--muted); font-size: 12px; margin: 6px 0 12px; }
+  .login-msg { font-size: 13px; margin-top: 8px; min-height: 18px; }
+  .login-msg.ok { color: var(--success); }
+  .login-msg.error { color: var(--danger); }
+
+  .header-auth { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
+  .header-auth button {
+    padding: 6px 12px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--card); color: var(--text); cursor: pointer; font-size: 12.5px;
+  }
+  header .header-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
 </style>
 </head>
 <body>
+
+<div id="login-gate">
+  <div class="login-box">
+    <h1>Content OS</h1>
+    <p>Sign in to generate content and connect your Facebook Page.</p>
+    <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email">
+    <button class="btn-primary" id="login-email-btn">Send magic link</button>
+    <div class="login-divider">or</div>
+    <button class="btn-google" id="login-google-btn">Continue with Google</button>
+    <div class="login-msg" id="login-msg"></div>
+  </div>
+</div>
+
+<div id="app">
 <div class="wrap">
   <header>
-    <h1>Content OS Dashboard</h1>
-    <p>Turn a video or post into ready-to-publish content — you review and approve every step.</p>
+    <div class="header-row">
+      <div>
+        <h1>Content OS Dashboard</h1>
+        <p>Turn a video or post into ready-to-publish content — you review and approve every step.</p>
+      </div>
+      <div class="header-auth" id="header-auth" hidden>
+        <span id="header-email"></span>
+        <button id="logout-btn">Log out</button>
+      </div>
+    </div>
   </header>
 
   <details class="card" id="persona-card">
@@ -289,6 +347,7 @@
     </div>
   </section>
 </div>
+</div>
 
 <script>
 const FORMATS = {
@@ -313,13 +372,89 @@ function setStatus(el, message, kind) {
   el.className = "status" + (kind ? " " + kind : "");
 }
 
+// ---------------------------------------------------------------- Auth --
+
+let sb = null;              // Supabase client (null in dev/no-auth mode)
+let authEnabled = false;
+let accessToken = null;
+
+async function refreshToken() {
+  if (!sb) return null;
+  const { data } = await sb.auth.getSession();
+  accessToken = data.session ? data.session.access_token : null;
+  return accessToken;
+}
+
 async function fetchJSON(url, options) {
-  const res = await fetch(url, options);
+  options = options || {};
+  const headers = Object.assign({}, options.headers || {});
+  if (accessToken) headers["Authorization"] = "Bearer " + accessToken;
+  const res = await fetch(url, Object.assign({}, options, { headers }));
+  if (res.status === 401 && authEnabled) {
+    showLoginGate();
+    throw new Error("Please sign in again.");
+  }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     throw new Error(data.detail || ("Request failed (" + res.status + ")"));
   }
   return data;
+}
+
+function showLoginGate() {
+  document.getElementById("app").style.display = "none";
+  document.getElementById("login-gate").classList.add("show");
+}
+
+function showApp() {
+  document.getElementById("login-gate").classList.remove("show");
+  document.getElementById("app").style.display = "block";
+}
+
+function setLoginMsg(text, kind) {
+  const el = document.getElementById("login-msg");
+  el.textContent = text || "";
+  el.className = "login-msg" + (kind ? " " + kind : "");
+}
+
+async function initAuth() {
+  const cfg = await fetch("/api/config").then(r => r.json()).catch(() => ({ auth_enabled: false }));
+  authEnabled = !!cfg.auth_enabled;
+  if (!authEnabled) return true;  // dev mode — straight into the app
+
+  sb = window.supabase.createClient(cfg.supabase_url, cfg.supabase_anon_key);
+
+  document.getElementById("login-email-btn").addEventListener("click", async () => {
+    const email = document.getElementById("login-email").value.trim();
+    if (!email) { setLoginMsg("Enter your email first.", "error"); return; }
+    setLoginMsg("Sending…");
+    const { error } = await sb.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.origin + "/dashboard" },
+    });
+    setLoginMsg(error ? error.message : "Check your inbox for the sign-in link.", error ? "error" : "ok");
+  });
+
+  document.getElementById("login-google-btn").addEventListener("click", async () => {
+    await sb.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin + "/dashboard" },
+    });
+  });
+
+  document.getElementById("logout-btn").addEventListener("click", async () => {
+    await sb.auth.signOut();
+    accessToken = null;
+    showLoginGate();
+  });
+
+  sb.auth.onAuthStateChange((_event, session) => {
+    accessToken = session ? session.access_token : null;
+    if (!session) showLoginGate();
+  });
+
+  await refreshToken();
+  return !!accessToken;
 }
 
 function escapeHtml(str) {
@@ -832,14 +967,31 @@ function renderPublishPanel() {
   panel.appendChild(statusEl);
 }
 
-loadPersona();
-loadWatchConfig();
-loadIdeas();
-loadHistory();
+async function boot() {
+  const authed = await initAuth();
+  if (!authed) { showLoginGate(); return; }
 
-// Auto-fetch can add new ideas in the background — refresh periodically so
-// they show up without a manual page reload.
-setInterval(loadIdeas, 30000);
+  showApp();
+
+  if (authEnabled) {
+    try {
+      const me = await fetchJSON("/api/me");
+      document.getElementById("header-email").textContent = me.email || "";
+      document.getElementById("header-auth").hidden = false;
+    } catch (e) { /* header is cosmetic */ }
+  }
+
+  loadPersona();
+  loadWatchConfig();
+  loadIdeas();
+  loadHistory();
+
+  // Auto-fetch can add new ideas in the background — refresh periodically so
+  // they show up without a manual page reload.
+  setInterval(loadIdeas, 30000);
+}
+
+boot();
 </script>
 </body>
 </html>

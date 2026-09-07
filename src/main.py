@@ -214,6 +214,19 @@ def dashboard():
     return FileResponse(WEB_DIR / "index.html")
 
 
+@app.get("/api/config")
+def api_config():
+    """Public — tells the frontend whether to show the login gate and which
+    Supabase project to authenticate against."""
+    settings = get_settings()
+    auth_enabled = bool(settings.supabase_jwt_secret and settings.supabase_url)
+    return {
+        "auth_enabled": auth_enabled,
+        "supabase_url": settings.supabase_url if auth_enabled else None,
+        "supabase_anon_key": settings.supabase_anon_key if auth_enabled else None,
+    }
+
+
 @app.get("/api/me")
 def api_me(current_user: User = Depends(get_current_user)):
     return {"id": current_user.id, "email": current_user.email}
