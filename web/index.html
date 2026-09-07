@@ -204,6 +204,7 @@
   .login-msg.error { color: var(--danger); }
 
   .header-auth { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
+  .header-auth[hidden] { display: none; }
   .header-auth button {
     padding: 6px 12px; border: 1px solid var(--border); border-radius: 8px;
     background: var(--card); color: var(--text); cursor: pointer; font-size: 12.5px;
@@ -279,6 +280,19 @@
       <div class="status" id="persona-status"></div>
     </div>
   </details>
+
+  <div class="card" id="facebook-card">
+    <h2>Facebook Page</h2>
+    <p class="muted">Connect the Page you want to publish to. Scheduled posts publish there automatically.</p>
+    <div id="fb-status"><span class="muted">Checking…</span></div>
+    <div id="fb-actions" style="margin-top:12px;"></div>
+    <div id="fb-pagepicker" style="margin-top:12px; display:none;">
+      <h3>Choose a Page to connect</h3>
+      <select id="fb-page-select"></select>
+      <button class="primary" id="fb-page-confirm" style="margin-left:8px;">Connect this Page</button>
+    </div>
+    <div class="status" id="fb-msg"></div>
+  </div>
 
   <details class="card" id="add-content-card" open>
     <summary>1. Add new content</summary>
@@ -967,6 +981,88 @@ function renderPublishPanel() {
   panel.appendChild(statusEl);
 }
 
+// ---------------------------------------------------------- Facebook card --
+
+async function loadFacebookCard() {
+  const statusEl = document.getElementById("fb-status");
+  const actionsEl = document.getElementById("fb-actions");
+  actionsEl.innerHTML = "";
+  try {
+    const c = await fetchJSON("/api/facebook/connection");
+    if (c.connected) {
+      statusEl.innerHTML = 'Connected: <strong>' + escapeHtml(c.page_name || c.page_id) + "</strong>";
+      const disc = document.createElement("button");
+      disc.className = "secondary";
+      disc.textContent = "Disconnect";
+      disc.addEventListener("click", async () => {
+        disc.disabled = true;
+        await fetchJSON("/api/facebook/connection", { method: "DELETE" });
+        loadFacebookCard();
+      });
+      actionsEl.appendChild(disc);
+    } else {
+      statusEl.innerHTML = '<span class="muted">Not connected.</span>';
+      const btn = document.createElement("button");
+      btn.className = "primary";
+      btn.textContent = "Connect Facebook";
+      btn.addEventListener("click", startFacebookConnect);
+      actionsEl.appendChild(btn);
+    }
+  } catch (e) {
+    statusEl.innerHTML = '<span class="muted">' + escapeHtml(e.message) + "</span>";
+  }
+}
+
+async function startFacebookConnect() {
+  setStatus(document.getElementById("fb-msg"), "Redirecting to Facebook…");
+  try {
+    const { authorize_url } = await fetchJSON("/api/facebook/oauth-start", { method: "POST" });
+    window.location.href = authorize_url;
+  } catch (e) {
+    setStatus(document.getElementById("fb-msg"), e.message, "error");
+  }
+}
+
+async function handleFacebookReturn() {
+  const params = new URLSearchParams(window.location.search);
+  const fb = params.get("fb");
+  if (!fb) return;
+  history.replaceState({}, "", window.location.pathname);
+  const msgEl = document.getElementById("fb-msg");
+
+  if (fb === "error") { setStatus(msgEl, "Facebook connection failed. Try again.", "error"); return; }
+  if (fb === "expired") { setStatus(msgEl, "That attempt expired. Try connecting again.", "error"); return; }
+  if (fb !== "pick") return;
+
+  try {
+    const pages = await fetchJSON("/api/facebook/pending-pages");
+    if (!pages.length) {
+      setStatus(msgEl, "No Pages found on that Facebook account.", "error");
+      return;
+    }
+    const picker = document.getElementById("fb-pagepicker");
+    const select = document.getElementById("fb-page-select");
+    select.innerHTML = pages.map(p => '<option value="' + escapeHtml(p.id) + '">' + escapeHtml(p.name) + "</option>").join("");
+    picker.style.display = "block";
+    document.getElementById("fb-page-confirm").onclick = async () => {
+      const page_id = select.value;
+      setStatus(msgEl, "Connecting…");
+      try {
+        const res = await fetchJSON("/api/facebook/select-page", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ page_id }),
+        });
+        picker.style.display = "none";
+        setStatus(msgEl, "Connected: " + (res.page_name || page_id), "ok");
+        loadFacebookCard();
+      } catch (e) { setStatus(msgEl, e.message, "error"); }
+    };
+  } catch (e) {
+    setStatus(msgEl, e.message, "error");
+  }
+}
+
 async function boot() {
   const authed = await initAuth();
   if (!authed) { showLoginGate(); return; }
@@ -982,9 +1078,11 @@ async function boot() {
   }
 
   loadPersona();
+  loadFacebookCard();
   loadWatchConfig();
   loadIdeas();
   loadHistory();
+  handleFacebookReturn();
 
   // Auto-fetch can add new ideas in the background — refresh periodically so
   // they show up without a manual page reload.

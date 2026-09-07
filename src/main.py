@@ -44,6 +44,7 @@ from src.ai_brain.brain import analyze_content
 from src.ai_brain.persona import load_persona, save_persona
 from src.approval.webhook import router as approval_router
 from src.approval.service import approve_and_generate
+from src.facebook.oauth import router as facebook_router
 from src.publisher.facebook_publisher import publish_to_facebook
 from src.publisher.wordpress_publisher import publish_to_wordpress
 from src.watch_service import check_and_ingest_new_videos
@@ -160,6 +161,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Automated Content OS", version="0.2.0", lifespan=lifespan)
 app.include_router(approval_router)
+app.include_router(facebook_router)
 app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")
 
 

@@ -183,3 +183,16 @@ class WordPressConnection(SQLModel, table=True):
     username: str = ""
     encrypted_app_password: str = ""
     created_at: float = Field(default_factory=time.time)
+
+
+class FacebookOAuthFlow(SQLModel, table=True):
+    """Short-lived scratch row for one in-progress 'Connect Facebook' handshake.
+    Holds the CSRF `state` and, after the callback, the encrypted list of the
+    user's Pages (each with its own Page token) until they pick one."""
+
+    __tablename__ = "facebook_oauth_flows"
+
+    user_id: str = Field(foreign_key="users.id", primary_key=True)
+    state: str = Field(index=True)
+    encrypted_pages_json: str = ""  # [{"id","name","access_token"}, ...] once the callback ran
+    created_at: float = Field(default_factory=time.time)
