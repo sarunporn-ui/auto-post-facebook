@@ -149,9 +149,18 @@ async def _watch_loop() -> None:
         await asyncio.sleep(_WATCH_POLL_SECONDS)
 
 
+_STARTUP_DB_ERROR: str | None = None
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    init_db()
+    global _STARTUP_DB_ERROR
+    try:
+        init_db()
+        _STARTUP_DB_ERROR = None
+    except Exception as exc:  # keep serving so /healthz can report the cause
+        _STARTUP_DB_ERROR = f"{type(exc).__name__}: {exc}"
+        logger.exception("init_db() failed at startup — DB is unreachable")
     watch_task = asyncio.create_task(_watch_loop())
     schedule_task = asyncio.create_task(_schedule_loop())
     yield
@@ -208,7 +217,29 @@ def root():
 
 @app.get("/healthz")
 def healthz():
-    return {"ok": True}
+    """Reports whether the DB is reachable. Returns 200 even when it is not, so
+    the failure cause is visible without digging through container logs."""
+    from sqlalchemy import text
+
+    from src.db import engine
+
+    db_ok, db_error = True, None
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+    except Exception as exc:
+        db_ok = False
+        db_error = f"{type(exc).__name__}: {exc}"
+
+    return {
+        "ok": db_ok,
+        "db": "ok" if db_ok else "error",
+        "db_error": db_error,
+        "startup_db_error": _STARTUP_DB_ERROR,
+        "auth_enabled": bool(
+            get_settings().supabase_jwt_secret and get_settings().supabase_url
+        ),
+    }
 
 
 @app.get("/dashboard")
