@@ -237,7 +237,7 @@ def healthz():
         "db_error": db_error,
         "startup_db_error": _STARTUP_DB_ERROR,
         "auth_enabled": bool(
-            get_settings().supabase_jwt_secret and get_settings().supabase_url
+            get_settings().supabase_url and get_settings().supabase_anon_key
         ),
     }
 
@@ -294,7 +294,7 @@ def api_config():
     """Public — tells the frontend whether to show the login gate and which
     Supabase project to authenticate against."""
     settings = get_settings()
-    auth_enabled = bool(settings.supabase_jwt_secret and settings.supabase_url)
+    auth_enabled = bool(settings.supabase_url and settings.supabase_anon_key)
     return {
         "auth_enabled": auth_enabled,
         "supabase_url": settings.supabase_url if auth_enabled else None,

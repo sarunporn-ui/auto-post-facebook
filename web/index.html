@@ -436,10 +436,13 @@ async function initAuth() {
   authEnabled = !!cfg.auth_enabled;
   if (!authEnabled) return true;  // dev mode — straight into the app
 
-  // Defaults: flowType 'pkce', detectSessionInUrl true, persistSession true.
-  // getSession() below awaits the library's initialize step, which is what
-  // consumes the ?code=/#access_token= after an OAuth redirect.
-  sb = window.supabase.createClient(cfg.supabase_url, cfg.supabase_anon_key);
+  // Implicit flow: the provider returns #access_token=… directly in the URL
+  // hash, so there is no PKCE code-verifier that has to survive the redirect
+  // round-trip in localStorage (that was failing here). detectSessionInUrl
+  // consumes the hash; getSession() below awaits that.
+  sb = window.supabase.createClient(cfg.supabase_url, cfg.supabase_anon_key, {
+    auth: { flowType: "implicit", detectSessionInUrl: true, persistSession: true, autoRefreshToken: true },
+  });
 
   // Surface an explicit provider error (rate limit / cancel / misconfig).
   const p = new URLSearchParams(window.location.search);
