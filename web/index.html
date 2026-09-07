@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="th">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Content OS Dashboard</title>
+<title>Content OS — แดชบอร์ด</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <style>
   :root {
@@ -217,11 +217,11 @@
 <div id="login-gate">
   <div class="login-box">
     <h1>Content OS</h1>
-    <p>Sign in to generate content and connect your Facebook Page.</p>
+    <p>เข้าสู่ระบบเพื่อสร้างคอนเทนต์และเชื่อมเพจ Facebook ของคุณ</p>
     <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email">
-    <button class="btn-primary" id="login-email-btn">Send magic link</button>
-    <div class="login-divider">or</div>
-    <button class="btn-google" id="login-google-btn">Continue with Google</button>
+    <button class="btn-primary" id="login-email-btn">ส่งลิงก์เข้าสู่ระบบ</button>
+    <div class="login-divider">หรือ</div>
+    <button class="btn-google" id="login-google-btn">เข้าสู่ระบบด้วย Google</button>
     <div class="login-msg" id="login-msg"></div>
   </div>
 </div>
@@ -231,133 +231,133 @@
   <header>
     <div class="header-row">
       <div>
-        <h1>Content OS Dashboard</h1>
-        <p>Turn a video or post into ready-to-publish content — you review and approve every step.</p>
+        <h1>Content OS — แดชบอร์ด</h1>
+        <p>เปลี่ยนวิดีโอหรือโพสต์ให้เป็นคอนเทนต์พร้อมเผยแพร่ — คุณตรวจและอนุมัติทุกขั้นตอน</p>
       </div>
       <div class="header-auth" id="header-auth" hidden>
         <span id="header-email"></span>
-        <button id="logout-btn">Log out</button>
+        <button id="logout-btn">ออกจากระบบ</button>
       </div>
     </div>
   </header>
 
   <details class="card" id="persona-card">
-    <summary>Your Persona <span class="subtitle">(edit anytime)</span></summary>
+    <summary>กลุ่มเป้าหมายของคุณ <span class="subtitle">(แก้ไขได้ตลอด)</span></summary>
     <div class="card-body">
-      <p class="muted">This describes who you're writing for. The AI uses it for every idea and every piece of content it generates — update it whenever your audience or style changes.</p>
+      <p class="muted">ส่วนนี้อธิบายว่าคุณกำลังเขียนถึงใคร AI จะใช้ข้อมูลนี้กับทุกไอเดียและทุกคอนเทนต์ที่สร้าง — อัปเดตได้ทุกครั้งที่กลุ่มลูกค้าหรือสไตล์เปลี่ยน</p>
 
-      <h3>Name</h3>
-      <input type="text" id="persona-name" placeholder="e.g. ร้านอาหารเพื่อสุขภาพสำหรับคนวัยทำงาน">
+      <h3>ชื่อ</h3>
+      <input type="text" id="persona-name" placeholder="เช่น ร้านอาหารเพื่อสุขภาพสำหรับคนวัยทำงาน">
 
-      <h3>Output language <span class="muted">(all generated content will be written in this language)</span></h3>
-      <input type="text" id="persona-language" placeholder="e.g. Thai, English, ไทย">
+      <h3>ภาษาของคอนเทนต์ <span class="muted">(คอนเทนต์ที่สร้างจะเป็นภาษานี้)</span></h3>
+      <input type="text" id="persona-language" placeholder="เช่น ไทย, อังกฤษ, Thai">
 
-      <h3>Description</h3>
-      <textarea id="persona-description" placeholder="Short summary of who this persona is"></textarea>
+      <h3>คำอธิบาย</h3>
+      <textarea id="persona-description" placeholder="สรุปสั้น ๆ ว่ากลุ่มเป้าหมายนี้คือใคร"></textarea>
 
-      <h3>Demographics</h3>
-      <input type="text" id="persona-demographics" placeholder="Age range, role, habits...">
+      <h3>ข้อมูลประชากร</h3>
+      <input type="text" id="persona-demographics" placeholder="ช่วงอายุ, อาชีพ, พฤติกรรม...">
 
-      <h3>Pain points <span class="muted">(one per line)</span></h3>
+      <h3>ปัญหา/ความกังวล <span class="muted">(บรรทัดละข้อ)</span></h3>
       <textarea id="persona-pain-points" placeholder="ไม่มีเวลาทำคอนเทนต์เอง&#10;ไม่รู้ว่าช่องทางไหนได้ผลจริง"></textarea>
 
-      <h3>Goals <span class="muted">(one per line)</span></h3>
+      <h3>เป้าหมาย <span class="muted">(บรรทัดละข้อ)</span></h3>
       <textarea id="persona-goals" placeholder="อยากได้ลูกค้าใหม่มากขึ้น&#10;อยากให้คนรู้จักแบรนด์"></textarea>
 
-      <h3>Tone of voice</h3>
+      <h3>โทนการสื่อสาร</h3>
       <input type="text" id="persona-tone" placeholder="เป็นกันเอง สนุก จริงใจ...">
 
-      <h3>Content pillars <span class="muted">(one per line)</span></h3>
+      <h3>เสาหลักของคอนเทนต์ <span class="muted">(บรรทัดละข้อ)</span></h3>
       <textarea id="persona-pillars" placeholder="เคล็ดลับที่ใช้ได้จริง&#10;เบื้องหลังธุรกิจ"></textarea>
 
-      <h3>Topics to avoid <span class="muted">(one per line)</span></h3>
+      <h3>หัวข้อที่ควรเลี่ยง <span class="muted">(บรรทัดละข้อ)</span></h3>
       <textarea id="persona-forbidden" placeholder="การเมือง&#10;คำกล่าวอ้างเกินจริง"></textarea>
 
-      <h3>Preferred call-to-action style</h3>
-      <textarea id="persona-cta" placeholder="ชวนให้ทำสิ่งเล็กๆ ที่ชัดเจน เช่น คอมเมนต์คำว่า..."></textarea>
+      <h3>สไตล์คำเชิญชวน (CTA) ที่ชอบ</h3>
+      <textarea id="persona-cta" placeholder="ชวนให้ทำสิ่งเล็ก ๆ ที่ชัดเจน เช่น คอมเมนต์คำว่า..."></textarea>
 
-      <button class="primary" id="save-persona-btn">Save Persona</button>
+      <button class="primary" id="save-persona-btn">บันทึกกลุ่มเป้าหมาย</button>
       <div class="status" id="persona-status"></div>
     </div>
   </details>
 
   <div class="card" id="facebook-card">
-    <h2>Facebook Page</h2>
-    <p class="muted">Connect the Page you want to publish to. Scheduled posts publish there automatically.</p>
-    <div id="fb-status"><span class="muted">Checking…</span></div>
+    <h2>เพจ Facebook</h2>
+    <p class="muted">เชื่อมเพจที่ต้องการโพสต์ โพสต์ที่ตั้งเวลาไว้จะเผยแพร่ไปที่เพจนี้โดยอัตโนมัติ</p>
+    <div id="fb-status"><span class="muted">กำลังตรวจสอบ…</span></div>
     <div id="fb-actions" style="margin-top:12px;"></div>
     <div id="fb-pagepicker" style="margin-top:12px; display:none;">
-      <h3>Choose a Page to connect</h3>
+      <h3>เลือกเพจที่จะเชื่อม</h3>
       <select id="fb-page-select"></select>
-      <button class="primary" id="fb-page-confirm" style="margin-left:8px;">Connect this Page</button>
+      <button class="primary" id="fb-page-confirm" style="margin-left:8px;">เชื่อมเพจนี้</button>
     </div>
     <div class="status" id="fb-msg"></div>
   </div>
 
   <details class="card" id="add-content-card" open>
-    <summary>1. Add new content</summary>
+    <summary>1. เพิ่มคอนเทนต์ใหม่</summary>
     <div class="card-body">
       <div class="tabs">
-        <button class="tab-btn active" data-tab="youtube">YouTube video</button>
-        <button class="tab-btn" data-tab="facebook">Facebook post / paste text</button>
+        <button class="tab-btn active" data-tab="youtube">วิดีโอ YouTube</button>
+        <button class="tab-btn" data-tab="facebook">โพสต์ Facebook / วางข้อความ</button>
       </div>
 
       <div class="tab-panel active" id="tab-youtube">
-        <input type="text" id="youtube-url" placeholder="Paste a YouTube video link (e.g. https://youtu.be/...)">
+        <input type="text" id="youtube-url" placeholder="วางลิงก์วิดีโอ YouTube (เช่น https://youtu.be/...)">
       </div>
       <div class="tab-panel" id="tab-facebook">
-        <textarea id="facebook-text" placeholder="Paste a Facebook post URL, or just paste the post text directly"></textarea>
+        <textarea id="facebook-text" placeholder="วางลิงก์โพสต์ Facebook หรือวางข้อความของโพสต์มาตรง ๆ"></textarea>
       </div>
 
-      <button class="primary" id="add-content-btn">Generate Ideas</button>
+      <button class="primary" id="add-content-btn">สร้างไอเดีย</button>
       <div class="status" id="add-content-status"></div>
     </div>
   </details>
 
   <details class="card" id="watch-card">
-    <summary>Auto-fetch new videos <span class="subtitle">(optional)</span></summary>
+    <summary>ดึงวิดีโอใหม่อัตโนมัติ <span class="subtitle">(ไม่บังคับ)</span></summary>
     <div class="card-body">
-      <p class="muted">Turn this on and the system checks your YouTube channel on its own — new videos turn into ideas below without you pasting anything.</p>
+      <p class="muted">เปิดใช้งานแล้วระบบจะเช็กช่อง YouTube ของคุณเอง — วิดีโอใหม่จะกลายเป็นไอเดียด้านล่างโดยที่คุณไม่ต้องวางลิงก์</p>
 
       <label style="display:flex; align-items:center; gap:8px; margin-bottom:14px; cursor:pointer;">
         <input type="checkbox" id="watch-enabled" style="width:16px; height:16px;">
-        <span>Enable auto-fetch</span>
+        <span>เปิดการดึงอัตโนมัติ</span>
       </label>
 
-      <h3>YouTube channel link</h3>
+      <h3>ลิงก์ช่อง YouTube</h3>
       <input type="text" id="watch-channel-url" placeholder="https://www.youtube.com/@yourchannel">
 
-      <h3>Check frequency</h3>
+      <h3>ความถี่ในการเช็ก</h3>
       <select id="watch-interval">
-        <option value="1">Every hour</option>
-        <option value="6">Every 6 hours</option>
-        <option value="24" selected>Once a day</option>
+        <option value="1">ทุกชั่วโมง</option>
+        <option value="6">ทุก 6 ชั่วโมง</option>
+        <option value="24" selected>วันละครั้ง</option>
       </select>
 
-      <button class="primary" id="save-watch-btn">Save</button>
-      <button class="secondary" id="check-now-btn">Check now</button>
+      <button class="primary" id="save-watch-btn">บันทึก</button>
+      <button class="secondary" id="check-now-btn">เช็กเดี๋ยวนี้</button>
       <div class="status" id="watch-status"></div>
     </div>
   </details>
 
   <section class="board">
     <div class="board-col" id="col-ideas">
-      <h2>Ideas <span class="muted">— pick one, choose a format</span></h2>
-      <div id="ideas-list"><div class="empty">Nothing waiting yet — add content above.</div></div>
+      <h2>ไอเดีย <span class="muted">— เลือกหนึ่งข้อ แล้วเลือกฟอร์แมต</span></h2>
+      <div id="ideas-list"><div class="empty">ยังไม่มีรายการ — เพิ่มคอนเทนต์ด้านบน</div></div>
     </div>
 
     <div class="board-col" id="col-preview">
-      <h2>Preview</h2>
-      <div id="preview-panel"><div class="empty">Select an idea on the left and click Generate — the real content (and image, if this format has one) will show here.</div></div>
+      <h2>ตัวอย่าง</h2>
+      <div id="preview-panel"><div class="empty">เลือกไอเดียทางซ้ายแล้วกดสร้าง — คอนเทนต์จริง (พร้อมรูป ถ้าฟอร์แมตนั้นมี) จะแสดงที่นี่</div></div>
       <div id="history-section" style="display:none;">
-        <h3 style="margin-top:22px;">Recent</h3>
+        <h3 style="margin-top:22px;">ล่าสุด</h3>
         <div id="history-list"></div>
       </div>
     </div>
 
     <div class="board-col" id="col-publish">
-      <h2>Publish</h2>
-      <div id="publish-panel"><div class="empty">Generate a piece of content first.</div></div>
+      <h2>เผยแพร่</h2>
+      <div id="publish-panel"><div class="empty">สร้างคอนเทนต์ก่อน</div></div>
     </div>
   </section>
 </div>
@@ -365,11 +365,11 @@
 
 <script>
 const FORMATS = {
-  1: { name: "Website Article", desc: "Long SEO article for your site", publish: "wordpress", publishLabel: "Website" },
-  2: { name: "Social Post", desc: "Short hook post + real image", publish: "facebook", publishLabel: "Facebook" },
-  3: { name: "Facebook Offer", desc: "Problem → Solution → Offer → CTA post", publish: "facebook", publishLabel: "Facebook" },
-  4: { name: "PDF Guide", desc: "Downloadable PDF (e.g. '101 Ideas')", publish: null, publishLabel: null },
-  5: { name: "TikTok Script", desc: "60-second script with timestamps", publish: null, publishLabel: null },
+  1: { name: "บทความเว็บไซต์", desc: "บทความ SEO ยาวสำหรับเว็บไซต์", publish: "wordpress", publishLabel: "เว็บไซต์" },
+  2: { name: "โพสต์โซเชียล", desc: "โพสต์ hook สั้น + รูปจริง", publish: "facebook", publishLabel: "Facebook" },
+  3: { name: "โพสต์ขาย Facebook", desc: "โพสต์ ปัญหา → ทางแก้ → ข้อเสนอ → CTA", publish: "facebook", publishLabel: "Facebook" },
+  4: { name: "คู่มือ PDF", desc: "PDF ดาวน์โหลดได้ (เช่น '101 ไอเดีย')", publish: null, publishLabel: null },
+  5: { name: "สคริปต์ TikTok", desc: "สคริปต์ 60 วินาที พร้อมจับเวลา", publish: null, publishLabel: null },
 };
 
 document.querySelectorAll(".tab-btn").forEach(btn => {
@@ -406,11 +406,11 @@ async function fetchJSON(url, options) {
   const res = await fetch(url, Object.assign({}, options, { headers }));
   if (res.status === 401 && authEnabled) {
     showLoginGate();
-    throw new Error("Please sign in again.");
+    throw new Error("กรุณาเข้าสู่ระบบอีกครั้ง");
   }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    throw new Error(data.detail || ("Request failed (" + res.status + ")"));
+    throw new Error(data.detail || ("คำขอไม่สำเร็จ (" + res.status + ")"));
   }
   return data;
 }
@@ -440,13 +440,13 @@ async function initAuth() {
 
   document.getElementById("login-email-btn").addEventListener("click", async () => {
     const email = document.getElementById("login-email").value.trim();
-    if (!email) { setLoginMsg("Enter your email first.", "error"); return; }
-    setLoginMsg("Sending…");
+    if (!email) { setLoginMsg("กรอกอีเมลก่อน", "error"); return; }
+    setLoginMsg("กำลังส่ง…");
     const { error } = await sb.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: window.location.origin + "/dashboard" },
     });
-    setLoginMsg(error ? error.message : "Check your inbox for the sign-in link.", error ? "error" : "ok");
+    setLoginMsg(error ? error.message : "เช็กอีเมลของคุณเพื่อกดลิงก์เข้าสู่ระบบ", error ? "error" : "ok");
   });
 
   document.getElementById("login-google-btn").addEventListener("click", async () => {
@@ -515,7 +515,7 @@ document.getElementById("save-persona-btn").addEventListener("click", async () =
     forbidden_topics: linesToArray(document.getElementById("persona-forbidden").value),
     preferred_cta: document.getElementById("persona-cta").value.trim(),
   };
-  if (!payload.persona_name) { setStatus(statusEl, "Give your persona a name first.", "error"); return; }
+  if (!payload.persona_name) { setStatus(statusEl, "ตั้งชื่อกลุ่มเป้าหมายก่อน", "error"); return; }
 
   btn.disabled = true;
   try {
@@ -524,9 +524,9 @@ document.getElementById("save-persona-btn").addEventListener("click", async () =
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    setStatus(statusEl, "Saved — new content will use this persona.", "ok");
+    setStatus(statusEl, "บันทึกแล้ว — คอนเทนต์ใหม่จะใช้กลุ่มเป้าหมายนี้", "ok");
   } catch (err) {
-    setStatus(statusEl, "Couldn't save: " + err.message, "error");
+    setStatus(statusEl, "บันทึกไม่สำเร็จ: " + err.message, "error");
   } finally {
     btn.disabled = false;
   }
@@ -537,13 +537,13 @@ document.getElementById("save-persona-btn").addEventListener("click", async () =
 function renderWatchStatus(cfg) {
   const statusEl = document.getElementById("watch-status");
   if (!cfg.enabled) {
-    setStatus(statusEl, "Auto-fetch is off.");
+    setStatus(statusEl, "การดึงอัตโนมัติปิดอยู่");
     return;
   }
   const last = cfg.last_checked_at
-    ? new Date(cfg.last_checked_at * 1000).toLocaleString()
-    : "not yet — will check soon";
-  setStatus(statusEl, "Auto-fetch is on. Last checked: " + last + ".", "ok");
+    ? new Date(cfg.last_checked_at * 1000).toLocaleString("th-TH")
+    : "ยังไม่ได้เช็ก — จะเช็กเร็ว ๆ นี้";
+  setStatus(statusEl, "การดึงอัตโนมัติเปิดอยู่ เช็กล่าสุด: " + last, "ok");
 }
 
 async function loadWatchConfig() {
@@ -563,7 +563,7 @@ document.getElementById("save-watch-btn").addEventListener("click", async () => 
     check_interval_hours: Number(document.getElementById("watch-interval").value),
   };
   if (payload.enabled && !payload.channel_url) {
-    setStatus(statusEl, "Paste your channel link first.", "error");
+    setStatus(statusEl, "วางลิงก์ช่องก่อน", "error");
     return;
   }
   btn.disabled = true;
@@ -575,7 +575,7 @@ document.getElementById("save-watch-btn").addEventListener("click", async () => 
     });
     renderWatchStatus(cfg);
   } catch (err) {
-    setStatus(statusEl, "Couldn't save: " + err.message, "error");
+    setStatus(statusEl, "บันทึกไม่สำเร็จ: " + err.message, "error");
   } finally {
     btn.disabled = false;
   }
@@ -586,14 +586,14 @@ document.getElementById("check-now-btn").addEventListener("click", async () => {
   const statusEl = document.getElementById("watch-status");
   btn.disabled = true;
   const originalLabel = btn.textContent;
-  btn.innerHTML = '<span class="spinner"></span>Checking…';
+  btn.innerHTML = '<span class="spinner"></span>กำลังเช็ก…';
   try {
     const result = await fetchJSON("/api/watch-config/check-now", { method: "POST" });
-    setStatus(statusEl, "Checked now — found " + result.new_approval_ids.length + " new video(s).", "ok");
+    setStatus(statusEl, "เช็กแล้ว — พบวิดีโอใหม่ " + result.new_approval_ids.length + " รายการ", "ok");
     await loadIdeas();
     await loadWatchConfig();
   } catch (err) {
-    setStatus(statusEl, "Check failed: " + err.message, "error");
+    setStatus(statusEl, "เช็กไม่สำเร็จ: " + err.message, "error");
   } finally {
     btn.disabled = false;
     btn.textContent = originalLabel;
@@ -610,18 +610,18 @@ document.getElementById("add-content-btn").addEventListener("click", async () =>
   let ingestUrl, ingestBody;
   if (activeTab === "youtube") {
     const url = document.getElementById("youtube-url").value.trim();
-    if (!url) { setStatus(statusEl, "Paste a YouTube link first.", "error"); return; }
+    if (!url) { setStatus(statusEl, "วางลิงก์ YouTube ก่อน", "error"); return; }
     ingestUrl = "/ingest/youtube";
     ingestBody = { url };
   } else {
     const text = document.getElementById("facebook-text").value.trim();
-    if (!text) { setStatus(statusEl, "Paste a post link or some text first.", "error"); return; }
+    if (!text) { setStatus(statusEl, "วางลิงก์โพสต์หรือข้อความก่อน", "error"); return; }
     ingestUrl = "/ingest/facebook";
     ingestBody = { url_or_text: text };
   }
 
   btn.disabled = true;
-  setStatus(statusEl, "⏳ Reading the content and generating ideas — this can take up to 30 seconds…");
+  setStatus(statusEl, "⏳ กำลังอ่านคอนเทนต์และสร้างไอเดีย — อาจใช้เวลาถึง 30 วินาที…");
 
   try {
     const raw = await fetchJSON(ingestUrl, {
@@ -631,12 +631,12 @@ document.getElementById("add-content-btn").addEventListener("click", async () =>
     });
     await fetchJSON("/analyze/" + raw.id, { method: "POST" });
 
-    setStatus(statusEl, "Done! New ideas are ready on the left.", "ok");
+    setStatus(statusEl, "เสร็จแล้ว! ไอเดียใหม่พร้อมอยู่ทางซ้าย", "ok");
     document.getElementById("youtube-url").value = "";
     document.getElementById("facebook-text").value = "";
     await loadIdeas();
   } catch (err) {
-    setStatus(statusEl, "Something went wrong: " + err.message, "error");
+    setStatus(statusEl, "เกิดข้อผิดพลาด: " + err.message, "error");
   } finally {
     btn.disabled = false;
   }
@@ -651,16 +651,16 @@ function dayLabel(unixSeconds) {
   const today = new Date();
   const isSameDay = (a, b) => a.toDateString() === b.toDateString();
   const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
-  if (isSameDay(d, today)) return "Today";
-  if (isSameDay(d, yesterday)) return "Yesterday";
-  return d.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
+  if (isSameDay(d, today)) return "วันนี้";
+  if (isSameDay(d, yesterday)) return "เมื่อวาน";
+  return d.toLocaleDateString("th-TH", { weekday: "long", month: "short", day: "numeric" });
 }
 
 async function loadIdeas() {
   const container = document.getElementById("ideas-list");
   const items = await fetchJSON("/api/pending");
   if (!items.length) {
-    container.innerHTML = '<div class="empty">Nothing waiting yet — add content above.</div>';
+    container.innerHTML = '<div class="empty">ยังไม่มีรายการ — เพิ่มคอนเทนต์ด้านบน</div>';
     return;
   }
 
@@ -719,21 +719,21 @@ async function loadIdeas() {
       formatSection.appendChild(grid);
 
       const promptLabel = document.createElement("h3");
-      promptLabel.textContent = "Optional: custom style/tone instructions";
+      promptLabel.textContent = "ไม่บังคับ: คำสั่งปรับสไตล์/โทน";
       formatSection.appendChild(promptLabel);
 
       const promptInput = document.createElement("textarea");
-      promptInput.placeholder = "e.g. \"make it funnier\", \"more formal\", \"mention our 20% discount\"";
+      promptInput.placeholder = "เช่น \"ให้ตลกขึ้น\", \"ทางการขึ้น\", \"ใส่ส่วนลด 20% ของเรา\"";
       formatSection.appendChild(promptInput);
 
       const genBtn = document.createElement("button");
       genBtn.className = "primary";
-      genBtn.textContent = "Generate";
+      genBtn.textContent = "สร้าง";
       genBtn.disabled = !selection[approval.id].formatType;
       genBtn.addEventListener("click", async () => {
         genBtn.disabled = true;
         const genLabel = genBtn.textContent;
-        genBtn.innerHTML = '<span class="spinner"></span>Generating…';
+        genBtn.innerHTML = '<span class="spinner"></span>กำลังสร้าง…';
         try {
           const generated = await fetchJSON("/api/generate", {
             method: "POST",
@@ -751,7 +751,7 @@ async function loadIdeas() {
         } catch (err) {
           genBtn.disabled = false;
           genBtn.textContent = genLabel;
-          alert("Couldn't generate content: " + err.message);
+          alert("สร้างคอนเทนต์ไม่สำเร็จ: " + err.message);
         }
       });
       formatSection.appendChild(genBtn);
@@ -776,11 +776,12 @@ function setActiveGenerated(generated) {
 function renderPreviewPanel() {
   const panel = document.getElementById("preview-panel");
   if (!activeGenerated) {
-    panel.innerHTML = '<div class="empty">Select an idea on the left and click Generate — the real content (and image, if this format has one) will show here.</div>';
+    panel.innerHTML = '<div class="empty">เลือกไอเดียทางซ้ายแล้วกดสร้าง — คอนเทนต์จริง (พร้อมรูป ถ้าฟอร์แมตนั้นมี) จะแสดงที่นี่</div>';
     return;
   }
   const gen = activeGenerated;
-  const info = FORMATS[gen.format_type] || { name: "Unknown format" };
+  const info = FORMATS[gen.format_type] || { name: "ฟอร์แมตไม่รู้จัก" };
+  const statusLabel = gen.status === "published" ? "เผยแพร่แล้ว" : "ฉบับร่าง";
 
   panel.innerHTML = "";
 
@@ -789,19 +790,19 @@ function renderPreviewPanel() {
   header.innerHTML = `
     <strong>${escapeHtml(gen.title)}</strong>
     <span class="badge">${info.name}</span>
-    <span class="badge ${gen.status === "published" ? "published" : "draft"}">${gen.status}</span>
+    <span class="badge ${gen.status === "published" ? "published" : "draft"}">${statusLabel}</span>
   `;
   panel.appendChild(header);
 
-  if (gen.extra && gen.extra.image_path) {
+  if (gen.extra && (gen.extra.image_url || gen.extra.image_path)) {
     const img = document.createElement("img");
     img.className = "preview-image";
-    img.src = "/generated/" + gen.id + "/image";
+    img.src = gen.extra.image_url || ("/generated/" + gen.id + "/image");
     panel.appendChild(img);
   } else if (gen.extra && gen.extra.image_prompt) {
     const box = document.createElement("div");
     box.className = "image-prompt-box";
-    box.innerHTML = `<strong>Image idea:</strong> ${escapeHtml(gen.extra.image_prompt)}<br><span class="muted">Add an OpenAI API key to generate a real image here automatically.</span>`;
+    box.innerHTML = `<strong>ไอเดียรูปภาพ:</strong> ${escapeHtml(gen.extra.image_prompt)}<br><span class="muted">ใส่ OpenAI API key เพื่อให้ระบบสร้างรูปจริงตรงนี้อัตโนมัติ</span>`;
     panel.appendChild(box);
   }
 
@@ -815,21 +816,21 @@ function renderPreviewPanel() {
 
   const copyBtn = document.createElement("button");
   copyBtn.className = "secondary";
-  copyBtn.textContent = "Copy text";
+  copyBtn.textContent = "คัดลอกข้อความ";
   copyBtn.addEventListener("click", () => {
     navigator.clipboard.writeText(gen.body);
-    copyBtn.textContent = "Copied!";
-    setTimeout(() => (copyBtn.textContent = "Copy text"), 1500);
+    copyBtn.textContent = "คัดลอกแล้ว!";
+    setTimeout(() => (copyBtn.textContent = "คัดลอกข้อความ"), 1500);
   });
   actions.appendChild(copyBtn);
 
-  if (gen.extra && gen.extra.pdf_path) {
+  if (gen.extra && (gen.extra.pdf_url || gen.extra.pdf_path)) {
     const dl = document.createElement("a");
     dl.className = "secondary";
     dl.style.textDecoration = "none";
     dl.style.display = "inline-block";
-    dl.textContent = "Download PDF";
-    dl.href = "/generated/" + gen.id + "/download";
+    dl.textContent = "ดาวน์โหลด PDF";
+    dl.href = gen.extra.pdf_url || ("/generated/" + gen.id + "/download");
     actions.appendChild(dl);
   }
 
@@ -847,10 +848,11 @@ async function loadHistory() {
   section.style.display = "block";
   container.innerHTML = "";
   items.forEach(gen => {
-    const info = FORMATS[gen.format_type] || { name: "Unknown format" };
+    const info = FORMATS[gen.format_type] || { name: "ฟอร์แมตไม่รู้จัก" };
+    const statusLabel = gen.status === "published" ? "เผยแพร่แล้ว" : "ฉบับร่าง";
     const row = document.createElement("div");
     row.className = "history-item" + (activeGenerated && activeGenerated.id === gen.id ? " active" : "");
-    row.innerHTML = `<strong>${escapeHtml(gen.title || info.name)}</strong><span class="muted">${info.name} — ${gen.status}</span>`;
+    row.innerHTML = `<strong>${escapeHtml(gen.title || info.name)}</strong><span class="muted">${info.name} — ${statusLabel}</span>`;
     row.addEventListener("click", () => {
       setActiveGenerated(gen);
       loadHistory();
@@ -864,19 +866,19 @@ async function loadHistory() {
 function renderPublishPanel() {
   const panel = document.getElementById("publish-panel");
   if (!activeGenerated) {
-    panel.innerHTML = '<div class="empty">Generate a piece of content first.</div>';
+    panel.innerHTML = '<div class="empty">สร้างคอนเทนต์ก่อน</div>';
     return;
   }
 
   const gen = activeGenerated;
   const channels = [
     { value: "facebook", label: "Facebook" },
-    { value: "wordpress", label: "Website (WordPress)" },
+    { value: "wordpress", label: "เว็บไซต์ (WordPress)" },
   ];
   const info = FORMATS[gen.format_type] || {};
 
   if (!info.publish) {
-    panel.innerHTML = '<div class="empty">This format is for manual use (download or copy it) — no auto-publish channel applies.</div>';
+    panel.innerHTML = '<div class="empty">ฟอร์แมตนี้ใช้แบบแมนวล (ดาวน์โหลดหรือคัดลอก) — ไม่มีช่องทางเผยแพร่อัตโนมัติ</div>';
     return;
   }
 
@@ -896,7 +898,7 @@ function renderPublishPanel() {
     Array.from(checksWrap.querySelectorAll("input:checked")).map(el => el.value);
 
   const h3 = document.createElement("h3");
-  h3.textContent = "Schedule for later (optional)";
+  h3.textContent = "ตั้งเวลาโพสต์ (ไม่บังคับ)";
   h3.style.marginTop = "14px";
   panel.appendChild(h3);
 
@@ -912,18 +914,18 @@ function renderPublishPanel() {
   const statusEl = document.createElement("div");
   statusEl.className = "status";
   if (gen.schedule_error) {
-    setStatus(statusEl, "Last attempt failed: " + gen.schedule_error, "error");
+    setStatus(statusEl, "ครั้งล่าสุดล้มเหลว: " + gen.schedule_error, "error");
   } else if (gen.scheduled_at) {
-    setStatus(statusEl, "Scheduled for " + new Date(gen.scheduled_at * 1000).toLocaleString() + ".", "ok");
+    setStatus(statusEl, "ตั้งเวลาไว้ " + new Date(gen.scheduled_at * 1000).toLocaleString("th-TH"), "ok");
   }
 
   const scheduleBtn = document.createElement("button");
   scheduleBtn.className = "secondary";
-  scheduleBtn.textContent = "Save schedule";
+  scheduleBtn.textContent = "บันทึกการตั้งเวลา";
   scheduleBtn.addEventListener("click", async () => {
     const chosen = getCheckedChannels();
-    if (!chosen.length) { setStatus(statusEl, "Pick at least one platform.", "error"); return; }
-    if (!dtInput.value) { setStatus(statusEl, "Pick a date and time first.", "error"); return; }
+    if (!chosen.length) { setStatus(statusEl, "เลือกอย่างน้อยหนึ่งช่องทาง", "error"); return; }
+    if (!dtInput.value) { setStatus(statusEl, "เลือกวันและเวลาก่อน", "error"); return; }
     const scheduledAt = new Date(dtInput.value).getTime() / 1000;
     scheduleBtn.disabled = true;
     try {
@@ -933,10 +935,10 @@ function renderPublishPanel() {
         body: JSON.stringify({ channels: chosen, scheduled_at: scheduledAt }),
       });
       activeGenerated = updated;
-      setStatus(statusEl, "Scheduled for " + new Date(scheduledAt * 1000).toLocaleString() + ".", "ok");
+      setStatus(statusEl, "ตั้งเวลาไว้ " + new Date(scheduledAt * 1000).toLocaleString("th-TH"), "ok");
       await loadHistory();
     } catch (err) {
-      setStatus(statusEl, "Couldn't schedule: " + err.message, "error");
+      setStatus(statusEl, "ตั้งเวลาไม่สำเร็จ: " + err.message, "error");
     } finally {
       scheduleBtn.disabled = false;
     }
@@ -945,13 +947,13 @@ function renderPublishPanel() {
 
   const publishNowBtn = document.createElement("button");
   publishNowBtn.className = "primary";
-  publishNowBtn.textContent = gen.status === "published" ? "Published" : "Publish now";
+  publishNowBtn.textContent = gen.status === "published" ? "เผยแพร่แล้ว" : "เผยแพร่ตอนนี้";
   publishNowBtn.disabled = gen.status === "published";
   publishNowBtn.addEventListener("click", async () => {
     const chosen = getCheckedChannels();
-    if (!chosen.length) { setStatus(statusEl, "Pick at least one platform.", "error"); return; }
+    if (!chosen.length) { setStatus(statusEl, "เลือกอย่างน้อยหนึ่งช่องทาง", "error"); return; }
     publishNowBtn.disabled = true;
-    publishNowBtn.innerHTML = '<span class="spinner"></span>Publishing…';
+    publishNowBtn.innerHTML = '<span class="spinner"></span>กำลังเผยแพร่…';
     const errors = [];
     for (const channel of chosen) {
       try {
@@ -967,11 +969,11 @@ function renderPublishPanel() {
     const refreshed = await fetchJSON("/generated/" + gen.id);
     activeGenerated = refreshed;
     if (errors.length) {
-      setStatus(statusEl, "Some platforms failed — " + errors.join("; "), "error");
+      setStatus(statusEl, "บางช่องทางล้มเหลว — " + errors.join("; "), "error");
       publishNowBtn.disabled = false;
-      publishNowBtn.textContent = "Publish now";
+      publishNowBtn.textContent = "เผยแพร่ตอนนี้";
     } else {
-      setStatus(statusEl, "Published!", "ok");
+      setStatus(statusEl, "เผยแพร่แล้ว!", "ok");
       renderPublishPanel();
     }
     renderPreviewPanel();
@@ -990,10 +992,10 @@ async function loadFacebookCard() {
   try {
     const c = await fetchJSON("/api/facebook/connection");
     if (c.connected) {
-      statusEl.innerHTML = 'Connected: <strong>' + escapeHtml(c.page_name || c.page_id) + "</strong>";
+      statusEl.innerHTML = 'เชื่อมแล้ว: <strong>' + escapeHtml(c.page_name || c.page_id) + "</strong>";
       const disc = document.createElement("button");
       disc.className = "secondary";
-      disc.textContent = "Disconnect";
+      disc.textContent = "ยกเลิกการเชื่อม";
       disc.addEventListener("click", async () => {
         disc.disabled = true;
         await fetchJSON("/api/facebook/connection", { method: "DELETE" });
@@ -1001,10 +1003,10 @@ async function loadFacebookCard() {
       });
       actionsEl.appendChild(disc);
     } else {
-      statusEl.innerHTML = '<span class="muted">Not connected.</span>';
+      statusEl.innerHTML = '<span class="muted">ยังไม่ได้เชื่อม</span>';
       const btn = document.createElement("button");
       btn.className = "primary";
-      btn.textContent = "Connect Facebook";
+      btn.textContent = "เชื่อม Facebook";
       btn.addEventListener("click", startFacebookConnect);
       actionsEl.appendChild(btn);
     }
@@ -1014,7 +1016,7 @@ async function loadFacebookCard() {
 }
 
 async function startFacebookConnect() {
-  setStatus(document.getElementById("fb-msg"), "Redirecting to Facebook…");
+  setStatus(document.getElementById("fb-msg"), "กำลังพาไป Facebook…");
   try {
     const { authorize_url } = await fetchJSON("/api/facebook/oauth-start", { method: "POST" });
     window.location.href = authorize_url;
@@ -1030,14 +1032,14 @@ async function handleFacebookReturn() {
   history.replaceState({}, "", window.location.pathname);
   const msgEl = document.getElementById("fb-msg");
 
-  if (fb === "error") { setStatus(msgEl, "Facebook connection failed. Try again.", "error"); return; }
-  if (fb === "expired") { setStatus(msgEl, "That attempt expired. Try connecting again.", "error"); return; }
+  if (fb === "error") { setStatus(msgEl, "เชื่อม Facebook ไม่สำเร็จ ลองใหม่อีกครั้ง", "error"); return; }
+  if (fb === "expired") { setStatus(msgEl, "คำขอหมดอายุ ลองเชื่อมใหม่อีกครั้ง", "error"); return; }
   if (fb !== "pick") return;
 
   try {
     const pages = await fetchJSON("/api/facebook/pending-pages");
     if (!pages.length) {
-      setStatus(msgEl, "No Pages found on that Facebook account.", "error");
+      setStatus(msgEl, "ไม่พบเพจในบัญชี Facebook นั้น", "error");
       return;
     }
     const picker = document.getElementById("fb-pagepicker");
@@ -1046,7 +1048,7 @@ async function handleFacebookReturn() {
     picker.style.display = "block";
     document.getElementById("fb-page-confirm").onclick = async () => {
       const page_id = select.value;
-      setStatus(msgEl, "Connecting…");
+      setStatus(msgEl, "กำลังเชื่อม…");
       try {
         const res = await fetchJSON("/api/facebook/select-page", {
           method: "POST",
@@ -1054,7 +1056,7 @@ async function handleFacebookReturn() {
           body: JSON.stringify({ page_id }),
         });
         picker.style.display = "none";
-        setStatus(msgEl, "Connected: " + (res.page_name || page_id), "ok");
+        setStatus(msgEl, "เชื่อมแล้ว: " + (res.page_name || page_id), "ok");
         loadFacebookCard();
       } catch (e) { setStatus(msgEl, e.message, "error"); }
     };

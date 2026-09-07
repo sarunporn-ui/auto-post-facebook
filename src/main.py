@@ -224,22 +224,24 @@ _LEGAL_PAGE = """<!doctype html><meta charset="utf-8"><title>{title}</title>
 @app.get("/privacy", response_class=HTMLResponse)
 def privacy():
     return _LEGAL_PAGE.format(
-        title="Privacy Policy — Content OS",
+        title="นโยบายความเป็นส่วนตัว — Content OS",
         body="""
-<p>Content OS helps its users draft social content and publish it to a Facebook
-Page they explicitly connect.</p>
-<h3>What we store</h3>
+<p>Content OS ช่วยผู้ใช้ร่างคอนเทนต์และเผยแพร่ไปยังเพจ Facebook ที่ผู้ใช้เชื่อมต่อเอง</p>
+<h3>ข้อมูลที่เราเก็บ</h3>
 <ul>
-<li>Your account: the email/identifier from your sign-in provider (Supabase Auth).</li>
-<li>Content you create: ingested source text, generated drafts, your persona settings.</li>
-<li>A Facebook Page access token for a Page you choose to connect — encrypted at rest,
-used only to publish posts you schedule. Remove it any time with "Disconnect".</li>
+<li>บัญชีของคุณ: อีเมล/ตัวระบุจากผู้ให้บริการล็อกอิน (Supabase Auth)</li>
+<li>คอนเทนต์ที่คุณสร้าง: ข้อความต้นทางที่นำเข้า, ฉบับร่างที่สร้าง, การตั้งค่ากลุ่มเป้าหมาย</li>
+<li>โทเคนเข้าถึงเพจ Facebook ของเพจที่คุณเลือกเชื่อม — เก็บแบบเข้ารหัส ใช้เพื่อเผยแพร่โพสต์
+ที่คุณตั้งเวลาไว้เท่านั้น ยกเลิกได้ตลอดด้วยปุ่ม "ยกเลิกการเชื่อม"</li>
 </ul>
-<h3>What we don't do</h3>
-<p>We don't sell data, and we don't post anything you didn't create and schedule.</p>
-<h3>Deletion</h3>
-<p>Disconnecting a Page deletes its token. To delete your account and all
-associated content, contact the operator of this instance.</p>
+<h3>สิ่งที่เราไม่ทำ</h3>
+<p>เราไม่ขายข้อมูล และไม่โพสต์อะไรที่คุณไม่ได้สร้างและตั้งเวลาไว้</p>
+<h3>การลบข้อมูล</h3>
+<p>การยกเลิกการเชื่อมเพจจะลบโทเคนทันที หากต้องการลบบัญชีและข้อมูลทั้งหมด
+ติดต่อผู้ดูแลระบบนี้ ดูเพิ่มที่ /data-deletion</p>
+<p style="color:#888;font-size:13px">English summary: Content OS stores your account email, the content
+you create, and an encrypted Facebook Page token used only to publish posts you schedule.
+We do not sell data. Disconnecting a Page deletes its token; contact the operator to delete your account.</p>
 """,
     )
 
@@ -247,11 +249,12 @@ associated content, contact the operator of this instance.</p>
 @app.get("/data-deletion", response_class=HTMLResponse)
 def data_deletion():
     return _LEGAL_PAGE.format(
-        title="Data Deletion — Content OS",
-        body="<p>To delete your data: open the dashboard, click <b>Disconnect</b> on the "
-        "Facebook Page card (this removes the stored token), then ask the operator of "
-        "this instance to delete your account. All your rows are keyed to your user id "
-        "and removed together.</p>",
+        title="การลบข้อมูล — Content OS",
+        body="<p>วิธีลบข้อมูลของคุณ: เปิดแดชบอร์ด กดปุ่ม <b>ยกเลิกการเชื่อม</b> บนการ์ดเพจ "
+        "Facebook (จะลบโทเคนที่เก็บไว้) จากนั้นแจ้งผู้ดูแลระบบนี้เพื่อลบบัญชี ข้อมูลทุกแถวของคุณ "
+        "ผูกกับ user id เดียวและถูกลบพร้อมกัน</p>"
+        "<p style='color:#888;font-size:13px'>English: to delete your data, click "
+        "<b>Disconnect</b> on the Facebook Page card, then ask the operator to delete your account.</p>",
     )
 
 
