@@ -231,14 +231,22 @@ def healthz():
         db_ok = False
         db_error = f"{type(exc).__name__}: {exc}"
 
+    s = get_settings()
     return {
         "ok": db_ok,
         "db": "ok" if db_ok else "error",
         "db_error": db_error,
         "startup_db_error": _STARTUP_DB_ERROR,
-        "auth_enabled": bool(
-            get_settings().supabase_url and get_settings().supabase_anon_key
-        ),
+        "auth_enabled": bool(s.supabase_url and s.supabase_anon_key),
+        # Booleans only — never the values — so "did the env var actually land
+        # on this deploy" can be checked without digging through logs or
+        # exposing a secret. Add a flag here whenever a new integration key
+        # is introduced.
+        "integrations": {
+            "supadata": bool(s.supadata_api_key),
+            "webshare_proxy": bool(s.webshare_proxy_username and s.webshare_proxy_password),
+            "facebook": bool(s.facebook_app_id and s.facebook_app_secret),
+        },
     }
 
 

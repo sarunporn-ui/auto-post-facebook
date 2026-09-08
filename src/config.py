@@ -9,7 +9,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    # env_file ต้องเป็น absolute path — ไม่งั้นเวลารันจากโฟลเดอร์อื่น (หรือใน container)
+    # pydantic จะหา .env ไม่เจอแล้วเงียบ ๆ ใช้ค่า default ทั้งหมดโดยไม่แจ้ง error
+    model_config = SettingsConfigDict(
+        env_file=str(BASE_DIR / ".env"), env_file_encoding="utf-8", extra="ignore"
+    )
 
     # --- LLM Providers ---
     llm_provider: str = "openai"  # openai | anthropic | gemini
@@ -20,6 +24,18 @@ class Settings(BaseSettings):
 
     # --- Ingestion ---
     whisper_model: str = "whisper-1"
+
+    # --- Webshare proxy (datacenter tier tested 2026-09-08: still IP-blocked by
+    # YouTube — kept here in case a residential tier is purchased later, but not
+    # the active path. See supadata_api_key below.) ---
+    webshare_proxy_username: Optional[str] = None
+    webshare_proxy_password: Optional[str] = None
+
+    # --- Supadata (hosted YouTube transcript API — sidesteps IP blocking
+    # entirely; free tier = 100 credits/month, no card. docs.supadata.ai) ---
+    # Unset locally — falls back to the direct youtube-transcript-api path,
+    # which already works fine from a home IP.
+    supadata_api_key: Optional[str] = None
 
     # --- Database ---
     # local default = sqlite file; production = Supabase Postgres pooler URL,
