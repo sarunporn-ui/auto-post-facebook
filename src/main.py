@@ -246,6 +246,10 @@ def healthz():
             "supadata": bool(s.supadata_api_key),
             "webshare_proxy": bool(s.webshare_proxy_username and s.webshare_proxy_password),
             "facebook": bool(s.facebook_app_id and s.facebook_app_secret),
+            # Not a secret (it's the public callback URL Meta redirects
+            # back to) — shown as a value so a redirect-URI mismatch
+            # between here and the Meta app can be spotted directly.
+            "facebook_redirect_uri": s.facebook_redirect_uri,
         },
     }
 
